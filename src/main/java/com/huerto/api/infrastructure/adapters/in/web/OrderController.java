@@ -30,19 +30,22 @@ public class OrderController {
     private final ConfirmOrderUseCase confirmOrderUseCase;
     private final StartPreparationUseCase startPreparationUseCase;
     private final MarkReadyUseCase markReadyUseCase;
+    private final CancelOrderUseCase cancelOrderUseCase;
 
     public OrderController(CreateOrderUseCase createOrderUseCase,
                            ListOrdersUseCase listOrdersUseCase,
                            FindOrderUseCase findOrderUseCase,
                            ConfirmOrderUseCase confirmOrderUseCase,
                            StartPreparationUseCase startPreparationUseCase,
-                           MarkReadyUseCase markReadyUseCase) {
+                           MarkReadyUseCase markReadyUseCase,
+                           CancelOrderUseCase cancelOrderUseCase) {
         this.createOrderUseCase = createOrderUseCase;
         this.listOrdersUseCase = listOrdersUseCase;
         this.findOrderUseCase = findOrderUseCase;
         this.confirmOrderUseCase = confirmOrderUseCase;
         this.startPreparationUseCase = startPreparationUseCase;
         this.markReadyUseCase = markReadyUseCase;
+        this.cancelOrderUseCase = cancelOrderUseCase;
     }
 
     @PostMapping
@@ -107,5 +110,15 @@ public class OrderController {
     public OrderResponse markReady(
             @Parameter(description = "Order UUID") @PathVariable UUID id) {
         return OrderResponse.from(markReadyUseCase.execute(id));
+    }
+
+    @PatchMapping("/{id}/cancel")
+    @Operation(summary = "Cancel an order")
+            @ApiResponse(responseCode = "200", description = "Order cancelled")
+            @ApiResponse(responseCode = "404", description = "Order not found")
+            @ApiResponse(responseCode = "422", description = "Order already cancelled")
+    public OrderResponse cancel(
+            @Parameter(description = "Order UUID") @PathVariable UUID id) {
+        return OrderResponse.from(cancelOrderUseCase.execute(id));
     }
 }

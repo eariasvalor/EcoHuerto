@@ -7,6 +7,7 @@ import com.huerto.api.application.usecase.order.ListOrdersUseCase;
 import com.huerto.api.application.usecase.order.ConfirmOrderUseCase;
 import com.huerto.api.application.usecase.order.StartPreparationUseCase;
 import com.huerto.api.application.usecase.order.MarkReadyUseCase;
+import com.huerto.api.application.usecase.order.CancelOrderUseCase;
 import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.exception.InsufficientStockException;
@@ -62,6 +63,7 @@ class OrderControllerTest {
     @MockBean ConfirmOrderUseCase confirmOrderUseCase;
     @MockBean StartPreparationUseCase startPreparationUseCase;
     @MockBean MarkReadyUseCase markReadyUseCase;
+    @MockBean CancelOrderUseCase cancelOrderUseCase;
 
     private Order buildOrder(UUID orderId, UUID customerId) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
@@ -358,6 +360,50 @@ class OrderControllerTest {
                         OrderStatus.CONFIRMED, OrderStatus.READY_FOR_PICKUP));
 
         mockMvc.perform(patch("/api/v1/orders/{id}/ready", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void should_return_200_when_order_is_cancelled() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        Order cancelled = new Order(
+                orderId, "HUE-0001", customerId,
+                buildOrder(orderId, customerId).lines(),
+                OrderStatus.CANCELLED,
+                LocalDateTime.now(), 1
+        );
+
+        when(cancelOrderUseCase.execute(orderId)).thenReturn(cancelled);
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/cancel", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
+    }
+
+    @Test
+    void should_return_404_when_order_not_found_on_cancel() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        when(cancelOrderUseCase.execute(orderId))
+                .thenThrow(new ResourceNotFoundException("Order", orderId));
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/cancel", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return_422_when_order_already_cancelled() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        when(cancelOrderUseCase.execute(orderId))
+                .thenThrow(new InvalidStatusTransitionException(
+                        OrderStatus.CANCELLED, OrderStatus.CANCELLED));
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/cancel", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnprocessableEntity());
     }
