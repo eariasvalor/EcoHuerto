@@ -4,6 +4,8 @@ import com.huerto.api.domain.model.Variety;
 import com.huerto.api.domain.ports.out.VarietyRepository;
 import com.huerto.api.infrastructure.adapters.out.persistence.mapper.VarietyEntityMapper;
 import com.huerto.api.infrastructure.adapters.out.persistence.repository.VarietyJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -35,6 +37,11 @@ public class VarietyJpaAdapter implements VarietyRepository {
     @Override
     public List<Variety> findAll() {
         return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public Page<Variety> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(mapper::toDomain);
     }
 
     @Override
