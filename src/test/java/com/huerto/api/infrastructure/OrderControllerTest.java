@@ -5,6 +5,7 @@ import com.huerto.api.application.usecase.order.CreateOrderUseCase;
 import com.huerto.api.application.usecase.order.FindOrderUseCase;
 import com.huerto.api.application.usecase.order.ListOrdersUseCase;
 import com.huerto.api.application.usecase.order.ConfirmOrderUseCase;
+import com.huerto.api.application.usecase.order.StartPreparationUseCase;
 import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.exception.InsufficientStockException;
@@ -58,6 +59,7 @@ class OrderControllerTest {
     @MockBean ListOrdersUseCase listOrdersUseCase;
     @MockBean FindOrderUseCase findOrderUseCase;
     @MockBean ConfirmOrderUseCase confirmOrderUseCase;
+    @MockBean StartPreparationUseCase startPreparationUseCase;
 
     private Order buildOrder(UUID orderId, UUID customerId) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
@@ -266,6 +268,50 @@ class OrderControllerTest {
                         OrderStatus.CONFIRMED, OrderStatus.CONFIRMED));
 
         mockMvc.perform(patch("/api/v1/orders/{id}/confirm", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void should_return_200_when_preparation_is_started() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        Order inPreparation = new Order(
+                orderId, "HUE-0001", customerId,
+                buildOrder(orderId, customerId).lines(),
+                OrderStatus.IN_PREPARATION,
+                LocalDateTime.now(), 1
+        );
+
+        when(startPreparationUseCase.execute(orderId)).thenReturn(inPreparation);
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/preparation", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("IN_PREPARATION"));
+    }
+
+    @Test
+    void should_return_404_when_order_not_found_on_preparation() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        when(startPreparationUseCase.execute(orderId))
+                .thenThrow(new ResourceNotFoundException("Order", orderId));
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/preparation", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return_422_when_invalid_transition_on_preparation() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        when(startPreparationUseCase.execute(orderId))
+                .thenThrow(new InvalidStatusTransitionException(
+                        OrderStatus.PENDING_CONFIRMATION, OrderStatus.IN_PREPARATION));
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/preparation", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnprocessableEntity());
     }
