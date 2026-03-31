@@ -16,6 +16,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -112,7 +116,7 @@ class ProductControllerTest {
     }
 
     @Test
-    void should_return_200_with_list_of_available_products() throws Exception {
+    void should_return_200_with_paginated_products() throws Exception {
         UUID varietyId = UUID.randomUUID();
         Variety variety = new Variety(varietyId, "Raf", "Tomato");
 
@@ -125,23 +129,34 @@ class ProductControllerTest {
                 Price.of("3.00"), Unit.KG, 50, true, 0
         );
 
-        when(listProductsUseCase.execute()).thenReturn(List.of(product1, product2));
+        Page<Product> page = new PageImpl<>(
+                List.of(product1, product2),
+                PageRequest.of(0, 10),
+                2
+        );
+
+        when(listProductsUseCase.execute(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/products")
+                        .param("page", "0")
+                        .param("size", "10")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].name").value("Tomato"))
-                .andExpect(jsonPath("$[1].name").value("Cherry Tomato"));
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("Tomato"));
     }
 
     @Test
     void should_return_200_with_empty_list_when_no_products() throws Exception {
-        when(listProductsUseCase.execute()).thenReturn(List.of());
+        when(listProductsUseCase.execute(any(Pageable.class))).thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/v1/products")
+                        .param("page", "0")
+                        .param("size", "10")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.content.length()").value(0));
     }
 }

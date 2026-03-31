@@ -3,6 +3,8 @@ package com.huerto.api.application.impl.product;
 import com.huerto.api.application.usecase.product.ListProductsUseCase;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.ports.out.ProductRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +19,7 @@ public class ListProductsUseCaseImpl implements ListProductsUseCase {
     }
 
     @Override
-    public List<Product> execute() {
-        return productRepository.findAllAvailable();
+    public Page<Product> execute(Pageable pageable) {
+        return productRepository.findAllAvailable(pageable);
     }
 }

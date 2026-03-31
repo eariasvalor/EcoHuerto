@@ -6,6 +6,8 @@ import com.huerto.api.application.usecase.product.ListProductsUseCase;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,10 +40,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductResponse> list() {
-        return listProductsUseCase.execute()
-                .stream()
-                .map(ProductResponse::from)
-                .toList();
+    public Page<ProductResponse> list(Pageable pageable) {
+        return listProductsUseCase.execute(pageable)
+                .map(ProductResponse::from);
     }
 }

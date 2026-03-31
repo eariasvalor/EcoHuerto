@@ -1,8 +1,9 @@
 package com.huerto.api.application.usecase.product;
 
 import com.huerto.api.domain.model.Product;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ListProductsUseCase {
-    List<Product> execute();
+    Page<Product> execute(Pageable pageable);
 }

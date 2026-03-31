@@ -11,6 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,22 +36,30 @@ class ListProductsUseCaseTest {
                 Price.of("2.50"), Unit.KG, 100, true, 0
         );
 
-        when(productRepository.findAllAvailable()).thenReturn(List.of(available));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Product> page = new PageImpl<>(List.of(available), pageable, 1);
 
-        List<Product> result = listProductsUseCase.execute();
+        when(productRepository.findAllAvailable(pageable)).thenReturn(page);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).available()).isTrue();
-        verify(productRepository).findAllAvailable();
+        Page<Product> result = listProductsUseCase.execute(pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).available()).isTrue();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        verify(productRepository).findAllAvailable(pageable);
         verify(productRepository, never()).findAll();
     }
 
     @Test
-    void should_return_empty_list_when_no_available_products() {
-        when(productRepository.findAllAvailable()).thenReturn(List.of());
+    void should_return_empty_page_when_no_available_products() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Product> emptyPage = Page.empty(pageable);
 
-        List<Product> result = listProductsUseCase.execute();
+        when(productRepository.findAllAvailable(pageable)).thenReturn(emptyPage);
 
-        assertThat(result).isEmpty();
+        Page<Product> result = listProductsUseCase.execute(pageable);
+
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(0);
     }
 }

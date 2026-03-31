@@ -13,6 +13,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -89,22 +93,26 @@ class ProductJpaAdapterTest {
         Variety variety = buildVariety();
         Product product = buildProduct(variety);
         ProductEntity entity = new ProductEntity();
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ProductEntity> entityPage = new PageImpl<>(List.of(entity), pageable, 1);
 
-        when(productJpaRepository.findByAvailableTrue()).thenReturn(List.of(entity));
+        when(productJpaRepository.findByAvailableTrue(pageable)).thenReturn(entityPage);
         when(productEntityMapper.toDomain(entity)).thenReturn(product);
 
-        List<Product> result = productJpaAdapter.findAllAvailable();
+        Page<Product> result = productJpaAdapter.findAllAvailable(pageable);
 
-        assertThat(result).hasSize(1);
-        verify(productJpaRepository).findByAvailableTrue();
+        assertThat(result.getContent()).hasSize(1);
+        verify(productJpaRepository).findByAvailableTrue(pageable);
     }
 
     @Test
-    void should_return_empty_list_when_no_available_products() {
-        when(productJpaRepository.findByAvailableTrue()).thenReturn(List.of());
+    void should_return_empty_page_when_no_available_products() {
+        Pageable pageable = PageRequest.of(0, 10);
 
-        List<Product> result = productJpaAdapter.findAllAvailable();
+        when(productJpaRepository.findByAvailableTrue(pageable)).thenReturn(Page.empty(pageable));
 
-        assertThat(result).isEmpty();
+        Page<Product> result = productJpaAdapter.findAllAvailable(pageable);
+
+        assertThat(result.getContent()).isEmpty();
     }
 }

@@ -5,6 +5,8 @@ import com.huerto.api.domain.ports.out.ProductRepository;
 import com.huerto.api.infrastructure.adapters.out.persistence.entity.ProductEntity;
 import com.huerto.api.infrastructure.adapters.out.persistence.mapper.ProductEntityMapper;
 import com.huerto.api.infrastructure.adapters.out.persistence.repository.ProductJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -42,10 +44,9 @@ public class ProductJpaAdapter implements ProductRepository {
     }
 
     @Override
-    public List<Product> findAllAvailable() {
-        return jpaRepository.findByAvailableTrue().stream()
-                .map(mapper::toDomain)
-                .toList();
+    public Page<Product> findAllAvailable(Pageable pageable) {
+        return jpaRepository.findByAvailableTrue(pageable)
+                .map(mapper::toDomain);
     }
 
     @Override
