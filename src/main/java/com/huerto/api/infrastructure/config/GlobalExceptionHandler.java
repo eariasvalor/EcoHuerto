@@ -74,4 +74,11 @@ public class GlobalExceptionHandler {
     public Map<String, Object> handleInvalidCredentials(InvalidCredentialsException ex) {
         return errorBody(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
+
+    @ExceptionHandler(InactiveAdminException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Map<String, Object> handleInactiveAdmin(InactiveAdminException ex) {
+        return errorBody(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
 }

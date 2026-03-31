@@ -3,7 +3,9 @@ package com.huerto.api.infrastructure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huerto.api.application.usecase.auth.RegisterCustomerUseCase;
 import com.huerto.api.application.usecase.auth.LoginCustomerUseCase;
+import com.huerto.api.application.usecase.auth.LoginAdminUseCase;
 import com.huerto.api.domain.exception.DuplicateEmailException;
+import com.huerto.api.domain.exception.InactiveAdminException;
 import com.huerto.api.domain.exception.InvalidCredentialsException;
 import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
@@ -45,6 +47,7 @@ class AuthControllerTest {
 
     @MockBean RegisterCustomerUseCase registerCustomerUseCase;
     @MockBean LoginCustomerUseCase loginCustomerUseCase;
+    @MockBean LoginAdminUseCase loginAdminUseCase;
 
     @Test
     void should_return_201_when_customer_is_registered() throws Exception {
@@ -156,5 +159,44 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void should_return_200_with_token_when_admin_credentials_are_valid() throws Exception {
+        LoginRequest request = new LoginRequest("admin@huerto.com", "secret1234");
+
+        when(loginAdminUseCase.execute(any())).thenReturn("admin.jwt.token");
+
+        mockMvc.perform(post("/api/v1/auth/login/admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("admin.jwt.token"));
+    }
+
+    @Test
+    void should_return_401_when_admin_credentials_are_invalid() throws Exception {
+        LoginRequest request = new LoginRequest("admin@huerto.com", "wrongpassword");
+
+        when(loginAdminUseCase.execute(any()))
+                .thenThrow(new InvalidCredentialsException());
+
+        mockMvc.perform(post("/api/v1/auth/login/admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void should_return_403_when_admin_is_inactive() throws Exception {
+        LoginRequest request = new LoginRequest("admin@huerto.com", "secret1234");
+
+        when(loginAdminUseCase.execute(any()))
+                .thenThrow(new InactiveAdminException());
+
+        mockMvc.perform(post("/api/v1/auth/login/admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 }
