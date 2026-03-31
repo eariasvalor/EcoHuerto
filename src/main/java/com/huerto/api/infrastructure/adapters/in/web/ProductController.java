@@ -25,17 +25,20 @@ public class ProductController {
     private final FindProductUseCase findProductUseCase;
     private final UpdateProductUseCase updateProductUseCase;
     private final UpdateStockUseCase updateStockUseCase;
+    private final ToggleAvailabilityUseCase toggleAvailabilityUseCase;
 
     public ProductController(CreateProductUseCase createProductUseCase,
                              ListProductsUseCase listProductsUseCase,
                              FindProductUseCase findProductUseCase,
                              UpdateProductUseCase updateProductUseCase,
-                             UpdateStockUseCase updateStockUseCase) {
+                             UpdateStockUseCase updateStockUseCase,
+                             ToggleAvailabilityUseCase toggleAvailabilityUseCase) {
         this.createProductUseCase = createProductUseCase;
         this.listProductsUseCase = listProductsUseCase;
         this.findProductUseCase = findProductUseCase;
         this.updateProductUseCase = updateProductUseCase;
         this.updateStockUseCase = updateStockUseCase;
+        this.toggleAvailabilityUseCase = toggleAvailabilityUseCase;
     }
 
     @PostMapping
@@ -80,6 +83,11 @@ public class ProductController {
                                        @Valid @RequestBody StockRequest request) {
         UpdateStockCommand command = new UpdateStockCommand(id, request.quantity());
         return ProductResponse.from(updateStockUseCase.execute(command));
+    }
+
+    @PatchMapping("/{id}/availability")
+    public ProductResponse toggleAvailability(@PathVariable UUID id) {
+        return ProductResponse.from(toggleAvailabilityUseCase.execute(id));
     }
 
 }

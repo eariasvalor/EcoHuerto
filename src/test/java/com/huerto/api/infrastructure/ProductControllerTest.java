@@ -3,8 +3,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huerto.api.application.usecase.product.CreateProductUseCase;
 import com.huerto.api.application.usecase.product.ListProductsUseCase;
 import com.huerto.api.application.usecase.product.FindProductUseCase;
-import com.huerto.api.application.usecase.product.UpdateProductUseCase;
 import com.huerto.api.application.usecase.product.UpdateStockUseCase;
+import com.huerto.api.application.usecase.product.UpdateProductUseCase;
+import com.huerto.api.application.usecase.product.ToggleAvailabilityUseCase;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.exception.InsufficientStockException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
@@ -58,6 +59,7 @@ class ProductControllerTest {
     @MockBean FindProductUseCase findProductUseCase;
     @MockBean UpdateProductUseCase updateProductUseCase;
     @MockBean UpdateStockUseCase updateStockUseCase;
+    @MockBean ToggleAvailabilityUseCase toggleAvailabilityUseCase;
 
     @Test
     void should_return_201_when_product_is_created() throws Exception {
@@ -285,5 +287,34 @@ class ProductControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"quantity\": -50}"))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void should_return_200_when_availability_is_toggled() throws Exception {
+        UUID id = UUID.randomUUID();
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        Product toggled = new Product(
+                id, "Tomato", variety,
+                Price.of("2.50"), Unit.KG, 100, false, 1
+        );
+
+        when(toggleAvailabilityUseCase.execute(id)).thenReturn(toggled);
+
+        mockMvc.perform(patch("/api/v1/products/{id}/availability", id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.available").value(false));
+    }
+
+    @Test
+    void should_return_404_when_product_not_found_on_toggle() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        when(toggleAvailabilityUseCase.execute(id))
+                .thenThrow(new ResourceNotFoundException("Product", id));
+
+        mockMvc.perform(patch("/api/v1/products/{id}/availability", id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 }
