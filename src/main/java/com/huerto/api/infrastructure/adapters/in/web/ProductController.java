@@ -7,6 +7,7 @@ import com.huerto.api.application.usecase.product.*;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductResponse;
 import com.huerto.api.infrastructure.adapters.in.web.dto.StockRequest;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,19 +30,22 @@ public class ProductController {
     private final UpdateProductUseCase updateProductUseCase;
     private final UpdateStockUseCase updateStockUseCase;
     private final ToggleAvailabilityUseCase toggleAvailabilityUseCase;
+    private final DeleteProductUseCase deleteProductUseCase;
 
     public ProductController(CreateProductUseCase createProductUseCase,
                              ListProductsUseCase listProductsUseCase,
                              FindProductUseCase findProductUseCase,
                              UpdateProductUseCase updateProductUseCase,
                              UpdateStockUseCase updateStockUseCase,
-                             ToggleAvailabilityUseCase toggleAvailabilityUseCase) {
+                             ToggleAvailabilityUseCase toggleAvailabilityUseCase,
+                             DeleteProductUseCase deleteProductUseCase) {
         this.createProductUseCase = createProductUseCase;
         this.listProductsUseCase = listProductsUseCase;
         this.findProductUseCase = findProductUseCase;
         this.updateProductUseCase = updateProductUseCase;
         this.updateStockUseCase = updateStockUseCase;
         this.toggleAvailabilityUseCase = toggleAvailabilityUseCase;
+        this.deleteProductUseCase = deleteProductUseCase;
     }
 
     @Operation(summary = "Create a new product")
@@ -115,6 +119,16 @@ public class ProductController {
     @PatchMapping("/{id}/availability")
     public ProductResponse toggleAvailability(@PathVariable UUID id) {
         return ProductResponse.from(toggleAvailabilityUseCase.execute(id));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Delete a product")
+            @ApiResponse(responseCode = "204", description = "Product deleted")
+            @ApiResponse(responseCode = "404", description = "Product not found")
+    public void delete(
+            @Parameter(description = "Product UUID") @PathVariable UUID id) {
+        deleteProductUseCase.execute(id);
     }
 
 }

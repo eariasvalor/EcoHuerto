@@ -16,4 +16,5 @@ public interface ProductRepository {
     List<Product> findByVarietyId(UUID varietyId);
     boolean existsByVarietyId(UUID varietyId);
     void deleteById(UUID id);
+    boolean existsById(UUID id);
 }

@@ -6,6 +6,10 @@ import com.huerto.api.application.usecase.product.FindProductUseCase;
 import com.huerto.api.application.usecase.product.UpdateStockUseCase;
 import com.huerto.api.application.usecase.product.UpdateProductUseCase;
 import com.huerto.api.application.usecase.product.ToggleAvailabilityUseCase;
+import com.huerto.api.application.usecase.product.DeleteProductUseCase;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.exception.InsufficientStockException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
@@ -60,6 +64,7 @@ class ProductControllerTest {
     @MockBean UpdateProductUseCase updateProductUseCase;
     @MockBean UpdateStockUseCase updateStockUseCase;
     @MockBean ToggleAvailabilityUseCase toggleAvailabilityUseCase;
+    @MockBean DeleteProductUseCase deleteProductUseCase;
 
     @Test
     void should_return_201_when_product_is_created() throws Exception {
@@ -315,6 +320,27 @@ class ProductControllerTest {
 
         mockMvc.perform(patch("/api/v1/products/{id}/availability", id)
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return_204_when_product_is_deleted() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/v1/products/{id}", id))
+                .andExpect(status().isNoContent());
+
+        verify(deleteProductUseCase).execute(id);
+    }
+
+    @Test
+    void should_return_404_when_product_not_found_on_delete() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        doThrow(new ResourceNotFoundException("Product", id))
+                .when(deleteProductUseCase).execute(id);
+
+        mockMvc.perform(delete("/api/v1/products/{id}", id))
                 .andExpect(status().isNotFound());
     }
 }
