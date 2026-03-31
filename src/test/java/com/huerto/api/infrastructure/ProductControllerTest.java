@@ -1,6 +1,7 @@
 package com.huerto.api.infrastructure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huerto.api.application.usecase.product.CreateProductUseCase;
+import com.huerto.api.application.usecase.product.ListProductsUseCase;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
@@ -19,11 +20,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(
@@ -40,6 +43,8 @@ class ProductControllerTest {
     @Autowired ObjectMapper objectMapper;
 
     @MockBean CreateProductUseCase createProductUseCase;
+    @MockBean
+    ListProductsUseCase listProductsUseCase;
 
     @Test
     void should_return_201_when_product_is_created() throws Exception {
@@ -104,5 +109,39 @@ class ProductControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void should_return_200_with_list_of_available_products() throws Exception {
+        UUID varietyId = UUID.randomUUID();
+        Variety variety = new Variety(varietyId, "Raf", "Tomato");
+
+        Product product1 = new Product(
+                UUID.randomUUID(), "Tomato", variety,
+                Price.of("2.50"), Unit.KG, 100, true, 0
+        );
+        Product product2 = new Product(
+                UUID.randomUUID(), "Cherry Tomato", variety,
+                Price.of("3.00"), Unit.KG, 50, true, 0
+        );
+
+        when(listProductsUseCase.execute()).thenReturn(List.of(product1, product2));
+
+        mockMvc.perform(get("/api/v1/products")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].name").value("Tomato"))
+                .andExpect(jsonPath("$[1].name").value("Cherry Tomato"));
+    }
+
+    @Test
+    void should_return_200_with_empty_list_when_no_products() throws Exception {
+        when(listProductsUseCase.execute()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/v1/products")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 }

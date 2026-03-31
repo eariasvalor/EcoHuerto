@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -81,5 +82,29 @@ class ProductJpaAdapterTest {
 
         assertThat(result).isEmpty();
         verify(productEntityMapper, never()).toDomain(any());
+    }
+
+    @Test
+    void should_return_only_available_products() {
+        Variety variety = buildVariety();
+        Product product = buildProduct(variety);
+        ProductEntity entity = new ProductEntity();
+
+        when(productJpaRepository.findByAvailableTrue()).thenReturn(List.of(entity));
+        when(productEntityMapper.toDomain(entity)).thenReturn(product);
+
+        List<Product> result = productJpaAdapter.findAllAvailable();
+
+        assertThat(result).hasSize(1);
+        verify(productJpaRepository).findByAvailableTrue();
+    }
+
+    @Test
+    void should_return_empty_list_when_no_available_products() {
+        when(productJpaRepository.findByAvailableTrue()).thenReturn(List.of());
+
+        List<Product> result = productJpaAdapter.findAllAvailable();
+
+        assertThat(result).isEmpty();
     }
 }
