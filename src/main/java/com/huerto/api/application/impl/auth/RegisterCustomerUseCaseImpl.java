@@ -1,8 +1,8 @@
-package com.huerto.api.application.impl.customer;
+package com.huerto.api.application.impl.auth;
 
 import com.fasterxml.uuid.Generators;
 import com.huerto.api.application.commands.RegisterCustomerCommand;
-import com.huerto.api.application.usecase.customer.RegisterCustomerUseCase;
+import com.huerto.api.application.usecase.auth.RegisterCustomerUseCase;
 import com.huerto.api.domain.exception.DuplicateEmailException;
 import com.huerto.api.domain.model.Customer;
 import com.huerto.api.domain.ports.out.CustomerRepository;

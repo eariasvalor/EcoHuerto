@@ -1,7 +1,7 @@
 package com.huerto.api.application;
 
 import com.huerto.api.application.commands.RegisterCustomerCommand;
-import com.huerto.api.application.impl.customer.RegisterCustomerUseCaseImpl;
+import com.huerto.api.application.impl.auth.RegisterCustomerUseCaseImpl;
 import com.huerto.api.domain.exception.DuplicateEmailException;
 import com.huerto.api.domain.model.Customer;
 import com.huerto.api.domain.ports.out.CustomerRepository;

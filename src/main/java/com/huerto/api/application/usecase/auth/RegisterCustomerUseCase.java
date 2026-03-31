@@ -1,4 +1,4 @@
-package com.huerto.api.application.usecase.customer;
+package com.huerto.api.application.usecase.auth;
 
 import com.huerto.api.application.commands.RegisterCustomerCommand;
 import com.huerto.api.domain.model.Customer;

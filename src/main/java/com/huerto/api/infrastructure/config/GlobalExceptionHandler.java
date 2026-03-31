@@ -68,4 +68,10 @@ public class GlobalExceptionHandler {
     public Map<String, Object> handleDuplicateEmail(DuplicateEmailException ex) {
         return errorBody(HttpStatus.CONFLICT, ex.getMessage());
     }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Map<String, Object> handleInvalidCredentials(InvalidCredentialsException ex) {
+        return errorBody(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
 }

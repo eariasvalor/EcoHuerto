@@ -1,12 +1,15 @@
 package com.huerto.api.infrastructure.adapters.in.web;
 
+import com.huerto.api.application.commands.LoginCommand;
 import com.huerto.api.application.commands.RegisterCustomerCommand;
-import com.huerto.api.application.usecase.customer.RegisterCustomerUseCase;
+import com.huerto.api.application.usecase.auth.LoginCustomerUseCase;
+import com.huerto.api.application.usecase.auth.RegisterCustomerUseCase;
 import com.huerto.api.infrastructure.adapters.in.web.dto.CustomerResponse;
+import com.huerto.api.infrastructure.adapters.in.web.dto.LoginRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.RegisterCustomerRequest;
+import com.huerto.api.infrastructure.adapters.in.web.dto.TokenResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -18,9 +21,12 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final RegisterCustomerUseCase registerCustomerUseCase;
+    private final LoginCustomerUseCase loginCustomerUseCase;
 
-    public AuthController(RegisterCustomerUseCase registerCustomerUseCase) {
+    public AuthController(RegisterCustomerUseCase registerCustomerUseCase,
+                          LoginCustomerUseCase loginCustomerUseCase) {
         this.registerCustomerUseCase = registerCustomerUseCase;
+        this.loginCustomerUseCase = loginCustomerUseCase;
     }
 
     @PostMapping("/register")
@@ -36,5 +42,15 @@ public class AuthController {
                 request.rawPassword()
         );
         return CustomerResponse.from(registerCustomerUseCase.execute(command));
+    }
+
+    @PostMapping("/login/customer")
+    @Operation(summary = "Login as customer")
+            @ApiResponse(responseCode = "200", description = "JWT token returned")
+            @ApiResponse(responseCode = "400", description = "Invalid request body")
+            @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    public TokenResponse loginCustomer(@Valid @RequestBody LoginRequest request) {
+        LoginCommand command = new LoginCommand(request.email(), request.rawPassword());
+        return new TokenResponse(loginCustomerUseCase.execute(command));
     }
 }

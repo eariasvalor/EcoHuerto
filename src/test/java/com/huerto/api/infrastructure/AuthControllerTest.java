@@ -1,12 +1,15 @@
 package com.huerto.api.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huerto.api.application.usecase.customer.RegisterCustomerUseCase;
+import com.huerto.api.application.usecase.auth.RegisterCustomerUseCase;
+import com.huerto.api.application.usecase.auth.LoginCustomerUseCase;
 import com.huerto.api.domain.exception.DuplicateEmailException;
+import com.huerto.api.domain.exception.InvalidCredentialsException;
 import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
 import com.huerto.api.domain.model.Customer;
 import com.huerto.api.infrastructure.adapters.in.web.AuthController;
+import com.huerto.api.infrastructure.adapters.in.web.dto.LoginRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.RegisterCustomerRequest;
 import com.huerto.api.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
@@ -41,6 +44,7 @@ class AuthControllerTest {
     @Autowired ObjectMapper objectMapper;
 
     @MockBean RegisterCustomerUseCase registerCustomerUseCase;
+    @MockBean LoginCustomerUseCase loginCustomerUseCase;
 
     @Test
     void should_return_201_when_customer_is_registered() throws Exception {
@@ -116,5 +120,41 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void should_return_200_with_token_when_credentials_are_valid() throws Exception {
+        LoginRequest request = new LoginRequest("john@huerto.com", "secret1234");
+
+        when(loginCustomerUseCase.execute(any())).thenReturn("jwt.token.here");
+
+        mockMvc.perform(post("/api/v1/auth/login/customer")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("jwt.token.here"));
+    }
+
+    @Test
+    void should_return_401_when_credentials_are_invalid() throws Exception {
+        LoginRequest request = new LoginRequest("john@huerto.com", "wrongpassword");
+
+        when(loginCustomerUseCase.execute(any()))
+                .thenThrow(new InvalidCredentialsException());
+
+        mockMvc.perform(post("/api/v1/auth/login/customer")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void should_return_400_when_login_request_is_invalid() throws Exception {
+        LoginRequest request = new LoginRequest("", "");
+
+        mockMvc.perform(post("/api/v1/auth/login/customer")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 }
