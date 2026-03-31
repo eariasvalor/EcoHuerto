@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huerto.api.application.usecase.order.CreateOrderUseCase;
 import com.huerto.api.application.usecase.order.FindOrderUseCase;
 import com.huerto.api.application.usecase.order.ListOrdersUseCase;
+import com.huerto.api.application.usecase.order.ConfirmOrderUseCase;
 import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.exception.InsufficientStockException;
+import com.huerto.api.domain.exception.InvalidStatusTransitionException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.*;
 import com.huerto.api.domain.valueobject.Price;
@@ -27,6 +29,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -53,6 +57,7 @@ class OrderControllerTest {
     @MockBean CreateOrderUseCase createOrderUseCase;
     @MockBean ListOrdersUseCase listOrdersUseCase;
     @MockBean FindOrderUseCase findOrderUseCase;
+    @MockBean ConfirmOrderUseCase confirmOrderUseCase;
 
     private Order buildOrder(UUID orderId, UUID customerId) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
@@ -219,5 +224,49 @@ class OrderControllerTest {
         mockMvc.perform(get("/api/v1/orders/{id}", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return_200_when_order_is_confirmed() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        Order confirmed = new Order(
+                orderId, "HUE-0001", customerId,
+                buildOrder(orderId, customerId).lines(),
+                OrderStatus.CONFIRMED,
+                LocalDateTime.now(), 1
+        );
+
+        when(confirmOrderUseCase.execute(orderId)).thenReturn(confirmed);
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/confirm", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+    }
+
+    @Test
+    void should_return_404_when_order_not_found_on_confirm() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        when(confirmOrderUseCase.execute(orderId))
+                .thenThrow(new ResourceNotFoundException("Order", orderId));
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/confirm", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return_422_when_invalid_status_transition_on_confirm() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        when(confirmOrderUseCase.execute(orderId))
+                .thenThrow(new InvalidStatusTransitionException(
+                        OrderStatus.CONFIRMED, OrderStatus.CONFIRMED));
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/confirm", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnprocessableEntity());
     }
 }

@@ -1,6 +1,7 @@
 package com.huerto.api.infrastructure.adapters.in.web;
 
 import com.huerto.api.application.commands.CreateOrderCommand;
+import com.huerto.api.application.usecase.order.ConfirmOrderUseCase;
 import com.huerto.api.application.usecase.order.CreateOrderUseCase;
 import com.huerto.api.application.usecase.order.FindOrderUseCase;
 import com.huerto.api.application.usecase.order.ListOrdersUseCase;
@@ -29,13 +30,16 @@ public class OrderController {
     private final CreateOrderUseCase createOrderUseCase;
     private final ListOrdersUseCase listOrdersUseCase;
     private final FindOrderUseCase findOrderUseCase;
+    private final ConfirmOrderUseCase confirmOrderUseCase;
 
     public OrderController(CreateOrderUseCase createOrderUseCase,
                            ListOrdersUseCase listOrdersUseCase,
-                           FindOrderUseCase findOrderUseCase) {
+                           FindOrderUseCase findOrderUseCase,
+                           ConfirmOrderUseCase confirmOrderUseCase) {
         this.createOrderUseCase = createOrderUseCase;
         this.listOrdersUseCase = listOrdersUseCase;
         this.findOrderUseCase = findOrderUseCase;
+        this.confirmOrderUseCase = confirmOrderUseCase;
     }
 
     @PostMapping
@@ -70,5 +74,15 @@ public class OrderController {
     public OrderResponse findById(
             @Parameter(description = "Order UUID") @PathVariable UUID id) {
         return OrderResponse.from(findOrderUseCase.execute(id));
+    }
+
+    @PatchMapping("/{id}/confirm")
+    @Operation(summary = "Confirm an order")
+            @ApiResponse(responseCode = "200", description = "Order confirmed")
+            @ApiResponse(responseCode = "404", description = "Order not found")
+            @ApiResponse(responseCode = "422", description = "Invalid status transition")
+    public OrderResponse confirm(
+            @Parameter(description = "Order UUID") @PathVariable UUID id) {
+        return OrderResponse.from(confirmOrderUseCase.execute(id));
     }
 }
