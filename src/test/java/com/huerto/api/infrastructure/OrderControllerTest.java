@@ -2,6 +2,7 @@ package com.huerto.api.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huerto.api.application.usecase.order.CreateOrderUseCase;
+import com.huerto.api.application.usecase.order.FindOrderUseCase;
 import com.huerto.api.application.usecase.order.ListOrdersUseCase;
 import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.enums.Unit;
@@ -51,6 +52,7 @@ class OrderControllerTest {
 
     @MockBean CreateOrderUseCase createOrderUseCase;
     @MockBean ListOrdersUseCase listOrdersUseCase;
+    @MockBean FindOrderUseCase findOrderUseCase;
 
     private Order buildOrder(UUID orderId, UUID customerId) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
@@ -189,5 +191,33 @@ class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(0));
+    }
+
+    @Test
+    void should_return_200_when_order_exists() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        Order order = buildOrder(orderId, customerId);
+
+        when(findOrderUseCase.execute(orderId)).thenReturn(order);
+
+        mockMvc.perform(get("/api/v1/orders/{id}", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(orderId.toString()))
+                .andExpect(jsonPath("$.visibleId").value("HUE-0001"))
+                .andExpect(jsonPath("$.status").value("PENDING_CONFIRMATION"));
+    }
+
+    @Test
+    void should_return_404_when_order_not_found() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        when(findOrderUseCase.execute(orderId))
+                .thenThrow(new ResourceNotFoundException("Order", orderId));
+
+        mockMvc.perform(get("/api/v1/orders/{id}", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 }

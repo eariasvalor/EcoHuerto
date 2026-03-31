@@ -2,11 +2,13 @@ package com.huerto.api.infrastructure.adapters.in.web;
 
 import com.huerto.api.application.commands.CreateOrderCommand;
 import com.huerto.api.application.usecase.order.CreateOrderUseCase;
+import com.huerto.api.application.usecase.order.FindOrderUseCase;
 import com.huerto.api.application.usecase.order.ListOrdersUseCase;
 import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.infrastructure.adapters.in.web.dto.CreateOrderRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.OrderResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -25,11 +28,14 @@ public class OrderController {
 
     private final CreateOrderUseCase createOrderUseCase;
     private final ListOrdersUseCase listOrdersUseCase;
+    private final FindOrderUseCase findOrderUseCase;
 
     public OrderController(CreateOrderUseCase createOrderUseCase,
-                           ListOrdersUseCase listOrdersUseCase) {
+                           ListOrdersUseCase listOrdersUseCase,
+                           FindOrderUseCase findOrderUseCase) {
         this.createOrderUseCase = createOrderUseCase;
         this.listOrdersUseCase = listOrdersUseCase;
+        this.findOrderUseCase = findOrderUseCase;
     }
 
     @PostMapping
@@ -55,5 +61,14 @@ public class OrderController {
             @RequestParam(required = false) OrderStatus status,
             Pageable pageable) {
         return listOrdersUseCase.execute(status, pageable).map(OrderResponse::from);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Find an order by id")
+            @ApiResponse(responseCode = "200", description = "Order found")
+            @ApiResponse(responseCode = "404", description = "Order not found")
+    public OrderResponse findById(
+            @Parameter(description = "Order UUID") @PathVariable UUID id) {
+        return OrderResponse.from(findOrderUseCase.execute(id));
     }
 }
