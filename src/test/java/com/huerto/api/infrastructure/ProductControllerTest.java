@@ -4,7 +4,9 @@ import com.huerto.api.application.usecase.product.CreateProductUseCase;
 import com.huerto.api.application.usecase.product.ListProductsUseCase;
 import com.huerto.api.application.usecase.product.FindProductUseCase;
 import com.huerto.api.application.usecase.product.UpdateProductUseCase;
+import com.huerto.api.application.usecase.product.UpdateStockUseCase;
 import com.huerto.api.domain.enums.Unit;
+import com.huerto.api.domain.exception.InsufficientStockException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
@@ -35,6 +37,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(
@@ -54,6 +57,7 @@ class ProductControllerTest {
     @MockBean ListProductsUseCase listProductsUseCase;
     @MockBean FindProductUseCase findProductUseCase;
     @MockBean UpdateProductUseCase updateProductUseCase;
+    @MockBean UpdateStockUseCase updateStockUseCase;
 
     @Test
     void should_return_201_when_product_is_created() throws Exception {
@@ -237,5 +241,49 @@ class ProductControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return_200_when_stock_is_updated() throws Exception {
+        UUID id = UUID.randomUUID();
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        Product updated = new Product(
+                id, "Tomato", variety,
+                Price.of("2.50"), Unit.KG, 150, true, 1
+        );
+
+        when(updateStockUseCase.execute(any())).thenReturn(updated);
+
+        mockMvc.perform(patch("/api/v1/products/{id}/stock", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"quantity\": 50}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stock").value(150));
+    }
+
+    @Test
+    void should_return_404_when_product_not_found_on_stock_update() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        when(updateStockUseCase.execute(any()))
+                .thenThrow(new ResourceNotFoundException("Product", id));
+
+        mockMvc.perform(patch("/api/v1/products/{id}/stock", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"quantity\": 50}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return_409_when_stock_goes_negative() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        when(updateStockUseCase.execute(any()))
+                .thenThrow(new InsufficientStockException(id, 10, 50));
+
+        mockMvc.perform(patch("/api/v1/products/{id}/stock", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"quantity\": -50}"))
+                .andExpect(status().isConflict());
     }
 }

@@ -2,12 +2,11 @@ package com.huerto.api.infrastructure.adapters.in.web;
 
 import com.huerto.api.application.commands.CreateProductCommand;
 import com.huerto.api.application.commands.UpdateProductCommand;
-import com.huerto.api.application.usecase.product.CreateProductUseCase;
-import com.huerto.api.application.usecase.product.FindProductUseCase;
-import com.huerto.api.application.usecase.product.ListProductsUseCase;
-import com.huerto.api.application.usecase.product.UpdateProductUseCase;
+import com.huerto.api.application.commands.UpdateStockCommand;
+import com.huerto.api.application.usecase.product.*;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductResponse;
+import com.huerto.api.infrastructure.adapters.in.web.dto.StockRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,15 +24,18 @@ public class ProductController {
     private final ListProductsUseCase listProductsUseCase;
     private final FindProductUseCase findProductUseCase;
     private final UpdateProductUseCase updateProductUseCase;
+    private final UpdateStockUseCase updateStockUseCase;
 
     public ProductController(CreateProductUseCase createProductUseCase,
                              ListProductsUseCase listProductsUseCase,
                              FindProductUseCase findProductUseCase,
-                             UpdateProductUseCase updateProductUseCase) {
+                             UpdateProductUseCase updateProductUseCase,
+                             UpdateStockUseCase updateStockUseCase) {
         this.createProductUseCase = createProductUseCase;
         this.listProductsUseCase = listProductsUseCase;
         this.findProductUseCase = findProductUseCase;
         this.updateProductUseCase = updateProductUseCase;
+        this.updateStockUseCase = updateStockUseCase;
     }
 
     @PostMapping
@@ -71,6 +73,13 @@ public class ProductController {
                 request.unit()
         );
         return ProductResponse.from(updateProductUseCase.execute(command));
+    }
+
+    @PatchMapping("/{id}/stock")
+    public ProductResponse updateStock(@PathVariable UUID id,
+                                       @Valid @RequestBody StockRequest request) {
+        UpdateStockCommand command = new UpdateStockCommand(id, request.quantity());
+        return ProductResponse.from(updateStockUseCase.execute(command));
     }
 
 }
