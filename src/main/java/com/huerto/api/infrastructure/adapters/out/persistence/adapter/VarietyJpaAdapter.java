@@ -48,4 +48,9 @@ public class VarietyJpaAdapter implements VarietyRepository {
     public boolean existsById(UUID id) {
         return jpaRepository.existsById(id);
     }
+    @Override
+    public void deleteById(UUID id) {
+        jpaRepository.deleteById(id);
+    }
+
 }

@@ -14,4 +14,5 @@ public interface VarietyRepository {
     Page<Variety> findAll(Pageable pageable);
     List<Variety> findAll();
     boolean existsById(UUID id);
+    void deleteById(UUID id);
 }

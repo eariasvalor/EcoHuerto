@@ -3,6 +3,9 @@ package com.huerto.api.infrastructure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huerto.api.application.usecase.variety.CreateVarietyUseCase;
 import com.huerto.api.application.usecase.variety.ListVarietiesUseCase;
+import com.huerto.api.application.usecase.variety.DeleteVarietyUseCase;
+import com.huerto.api.domain.exception.ResourceNotFoundException;
+import com.huerto.api.domain.exception.VarietyInUseException;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.infrastructure.adapters.in.web.VarietyController;
 import com.huerto.api.infrastructure.adapters.in.web.dto.VarietyRequest;
@@ -20,10 +23,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 import org.springframework.data.domain.*;
 import java.util.List;
+
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -42,6 +49,7 @@ class VarietyControllerTest {
 
     @MockBean CreateVarietyUseCase createVarietyUseCase;
     @MockBean ListVarietiesUseCase listVarietiesUseCase;
+    @MockBean DeleteVarietyUseCase deleteVarietyUseCase;
 
     @Test
     void should_return_201_when_variety_is_created() throws Exception {
@@ -113,5 +121,37 @@ class VarietyControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(0));
+    }
+
+    @Test
+    void should_return_204_when_variety_is_deleted() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/v1/varieties/{id}", id))
+                .andExpect(status().isNoContent());
+
+        verify(deleteVarietyUseCase).execute(id);
+    }
+
+    @Test
+    void should_return_404_when_variety_not_found() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        doThrow(new ResourceNotFoundException("Variety", id))
+                .when(deleteVarietyUseCase).execute(id);
+
+        mockMvc.perform(delete("/api/v1/varieties/{id}", id))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return_409_when_variety_is_in_use() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        doThrow(new VarietyInUseException(id))
+                .when(deleteVarietyUseCase).execute(id);
+
+        mockMvc.perform(delete("/api/v1/varieties/{id}", id))
+                .andExpect(status().isConflict());
     }
 }
