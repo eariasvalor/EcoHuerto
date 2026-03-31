@@ -2,7 +2,9 @@ package com.huerto.api.infrastructure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huerto.api.application.usecase.product.CreateProductUseCase;
 import com.huerto.api.application.usecase.product.ListProductsUseCase;
+import com.huerto.api.application.usecase.product.FindProductUseCase;
 import com.huerto.api.domain.enums.Unit;
+import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.domain.valueobject.Price;
@@ -47,8 +49,8 @@ class ProductControllerTest {
     @Autowired ObjectMapper objectMapper;
 
     @MockBean CreateProductUseCase createProductUseCase;
-    @MockBean
-    ListProductsUseCase listProductsUseCase;
+    @MockBean ListProductsUseCase listProductsUseCase;
+    @MockBean FindProductUseCase findProductUseCase;
 
     @Test
     void should_return_201_when_product_is_created() throws Exception {
@@ -158,5 +160,36 @@ class ProductControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(0));
+    }
+
+    @Test
+    void should_return_200_when_product_exists() throws Exception {
+        UUID id = UUID.randomUUID();
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        Product product = new Product(
+                id, "Tomato", variety,
+                Price.of("2.50"), Unit.KG, 100, true, 0
+        );
+
+        when(findProductUseCase.execute(id)).thenReturn(product);
+
+        mockMvc.perform(get("/api/v1/products/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.name").value("Tomato"))
+                .andExpect(jsonPath("$.stock").value(100));
+    }
+
+    @Test
+    void should_return_404_when_product_does_not_exist() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        when(findProductUseCase.execute(id))
+                .thenThrow(new ResourceNotFoundException("Product", id));
+
+        mockMvc.perform(get("/api/v1/products/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 }

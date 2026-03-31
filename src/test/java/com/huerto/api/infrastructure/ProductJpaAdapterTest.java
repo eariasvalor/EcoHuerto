@@ -115,4 +115,21 @@ class ProductJpaAdapterTest {
 
         assertThat(result.getContent()).isEmpty();
     }
+
+    @Test
+    void should_find_product_by_id_and_map_to_domain() {
+        UUID id = UUID.randomUUID();
+        ProductEntity entity = new ProductEntity();
+        Variety variety = buildVariety();
+        Product product = buildProduct(variety);
+
+        when(productJpaRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(productEntityMapper.toDomain(entity)).thenReturn(product);
+
+        Optional<Product> result = productJpaAdapter.findById(id);
+
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(product);
+    }
+
 }

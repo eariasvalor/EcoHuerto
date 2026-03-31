@@ -2,6 +2,7 @@ package com.huerto.api.infrastructure.adapters.in.web;
 
 import com.huerto.api.application.commands.CreateProductCommand;
 import com.huerto.api.application.usecase.product.CreateProductUseCase;
+import com.huerto.api.application.usecase.product.FindProductUseCase;
 import com.huerto.api.application.usecase.product.ListProductsUseCase;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductResponse;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -19,11 +21,14 @@ public class ProductController {
 
     private final CreateProductUseCase createProductUseCase;
     private final ListProductsUseCase listProductsUseCase;
+    private final FindProductUseCase findProductUseCase;
 
     public ProductController(CreateProductUseCase createProductUseCase,
-                             ListProductsUseCase listProductsUseCase) {
+                             ListProductsUseCase listProductsUseCase,
+                             FindProductUseCase findProductUseCase) {
         this.createProductUseCase = createProductUseCase;
         this.listProductsUseCase = listProductsUseCase;
+        this.findProductUseCase = findProductUseCase;
     }
 
     @PostMapping
@@ -44,4 +49,10 @@ public class ProductController {
         return listProductsUseCase.execute(pageable)
                 .map(ProductResponse::from);
     }
+
+    @GetMapping("/{id}")
+    public ProductResponse findById(@PathVariable UUID id) {
+        return ProductResponse.from(findProductUseCase.execute(id));
+    }
+
 }
