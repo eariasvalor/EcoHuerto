@@ -1,5 +1,6 @@
 package com.huerto.api.infrastructure.adapters.in.web;
 
+import com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.Mark;
 import com.huerto.api.application.commands.CreateOrderCommand;
 import com.huerto.api.application.usecase.order.*;
 import com.huerto.api.domain.enums.OrderStatus;
@@ -28,17 +29,20 @@ public class OrderController {
     private final FindOrderUseCase findOrderUseCase;
     private final ConfirmOrderUseCase confirmOrderUseCase;
     private final StartPreparationUseCase startPreparationUseCase;
+    private final MarkReadyUseCase markReadyUseCase;
 
     public OrderController(CreateOrderUseCase createOrderUseCase,
                            ListOrdersUseCase listOrdersUseCase,
                            FindOrderUseCase findOrderUseCase,
                            ConfirmOrderUseCase confirmOrderUseCase,
-                           StartPreparationUseCase startPreparationUseCase) {
+                           StartPreparationUseCase startPreparationUseCase,
+                           MarkReadyUseCase markReadyUseCase) {
         this.createOrderUseCase = createOrderUseCase;
         this.listOrdersUseCase = listOrdersUseCase;
         this.findOrderUseCase = findOrderUseCase;
         this.confirmOrderUseCase = confirmOrderUseCase;
         this.startPreparationUseCase = startPreparationUseCase;
+        this.markReadyUseCase = markReadyUseCase;
     }
 
     @PostMapping
@@ -93,5 +97,15 @@ public class OrderController {
     public OrderResponse startPreparation(
             @Parameter(description = "Order UUID") @PathVariable UUID id) {
         return OrderResponse.from(startPreparationUseCase.execute(id));
+    }
+
+    @PatchMapping("/{id}/ready")
+    @Operation(summary = "Mark order as ready for pickup")
+            @ApiResponse(responseCode = "200", description = "Order ready for pickup")
+            @ApiResponse(responseCode = "404", description = "Order not found")
+            @ApiResponse(responseCode = "422", description = "Invalid status transition")
+    public OrderResponse markReady(
+            @Parameter(description = "Order UUID") @PathVariable UUID id) {
+        return OrderResponse.from(markReadyUseCase.execute(id));
     }
 }
