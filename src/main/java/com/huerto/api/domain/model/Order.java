@@ -1,6 +1,7 @@
 package com.huerto.api.domain.model;
 
 import com.huerto.api.domain.enums.OrderStatus;
+import com.huerto.api.domain.exception.InvalidStatusTransitionException;
 import com.huerto.api.domain.valueobject.Price;
 
 import java.time.LocalDateTime;
