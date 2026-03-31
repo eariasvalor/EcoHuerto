@@ -2,6 +2,8 @@ package com.huerto.api.infrastructure.adapters.in.web;
 
 import com.huerto.api.application.commands.CreateOrderCommand;
 import com.huerto.api.application.usecase.order.CreateOrderUseCase;
+import com.huerto.api.application.usecase.order.ListOrdersUseCase;
+import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.infrastructure.adapters.in.web.dto.CreateOrderRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.OrderResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,9 +24,12 @@ import java.util.List;
 public class OrderController {
 
     private final CreateOrderUseCase createOrderUseCase;
+    private final ListOrdersUseCase listOrdersUseCase;
 
-    public OrderController(CreateOrderUseCase createOrderUseCase) {
+    public OrderController(CreateOrderUseCase createOrderUseCase,
+                           ListOrdersUseCase listOrdersUseCase) {
         this.createOrderUseCase = createOrderUseCase;
+        this.listOrdersUseCase = listOrdersUseCase;
     }
 
     @PostMapping
@@ -38,5 +45,15 @@ public class OrderController {
                 .toList();
         CreateOrderCommand command = new CreateOrderCommand(request.customerId(), lines);
         return OrderResponse.from(createOrderUseCase.execute(command));
+    }
+
+    @GetMapping
+    @Operation(summary = "List orders",
+            description = "Filterable by status. Sortable by createdAt or status via sort param")
+    @ApiResponse(responseCode = "200", description = "Paginated order list")
+    public Page<OrderResponse> list(
+            @RequestParam(required = false) OrderStatus status,
+            Pageable pageable) {
+        return listOrdersUseCase.execute(status, pageable).map(OrderResponse::from);
     }
 }

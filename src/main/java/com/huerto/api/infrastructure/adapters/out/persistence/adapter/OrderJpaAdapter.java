@@ -54,4 +54,9 @@ public class OrderJpaAdapter implements OrderRepository {
     public Page<Order> findByStatus(OrderStatus status, Pageable pageable) {
         return jpaRepository.findByStatus(status, pageable).map(mapper::toDomain);
     }
+
+    @Override
+    public Page<Order> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(mapper::toDomain);
+    }
 }
