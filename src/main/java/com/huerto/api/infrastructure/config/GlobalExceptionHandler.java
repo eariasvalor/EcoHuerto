@@ -1,9 +1,6 @@
 package com.huerto.api.infrastructure.config;
 
-import com.huerto.api.domain.exception.InsufficientStockException;
-import com.huerto.api.domain.exception.InvalidStatusTransitionException;
-import com.huerto.api.domain.exception.ResourceNotFoundException;
-import com.huerto.api.domain.exception.VarietyInUseException;
+import com.huerto.api.domain.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -64,5 +61,11 @@ public class GlobalExceptionHandler {
                 "status", status.value(),
                 "error", message
         );
+    }
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, Object> handleDuplicateEmail(DuplicateEmailException ex) {
+        return errorBody(HttpStatus.CONFLICT, ex.getMessage());
     }
 }
