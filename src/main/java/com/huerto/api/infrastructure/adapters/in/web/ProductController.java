@@ -1,9 +1,11 @@
 package com.huerto.api.infrastructure.adapters.in.web;
 
 import com.huerto.api.application.commands.CreateProductCommand;
+import com.huerto.api.application.commands.UpdateProductCommand;
 import com.huerto.api.application.usecase.product.CreateProductUseCase;
 import com.huerto.api.application.usecase.product.FindProductUseCase;
 import com.huerto.api.application.usecase.product.ListProductsUseCase;
+import com.huerto.api.application.usecase.product.UpdateProductUseCase;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductResponse;
 import jakarta.validation.Valid;
@@ -22,13 +24,16 @@ public class ProductController {
     private final CreateProductUseCase createProductUseCase;
     private final ListProductsUseCase listProductsUseCase;
     private final FindProductUseCase findProductUseCase;
+    private final UpdateProductUseCase updateProductUseCase;
 
     public ProductController(CreateProductUseCase createProductUseCase,
                              ListProductsUseCase listProductsUseCase,
-                             FindProductUseCase findProductUseCase) {
+                             FindProductUseCase findProductUseCase,
+                             UpdateProductUseCase updateProductUseCase) {
         this.createProductUseCase = createProductUseCase;
         this.listProductsUseCase = listProductsUseCase;
         this.findProductUseCase = findProductUseCase;
+        this.updateProductUseCase = updateProductUseCase;
     }
 
     @PostMapping
@@ -53,6 +58,19 @@ public class ProductController {
     @GetMapping("/{id}")
     public ProductResponse findById(@PathVariable UUID id) {
         return ProductResponse.from(findProductUseCase.execute(id));
+    }
+
+    @PutMapping("/{id}")
+    public ProductResponse update(@PathVariable UUID id,
+                                  @Valid @RequestBody ProductRequest request) {
+        UpdateProductCommand command = new UpdateProductCommand(
+                id,
+                request.name(),
+                request.varietyId(),
+                request.price(),
+                request.unit()
+        );
+        return ProductResponse.from(updateProductUseCase.execute(command));
     }
 
 }

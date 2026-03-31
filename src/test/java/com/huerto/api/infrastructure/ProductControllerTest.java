@@ -3,6 +3,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huerto.api.application.usecase.product.CreateProductUseCase;
 import com.huerto.api.application.usecase.product.ListProductsUseCase;
 import com.huerto.api.application.usecase.product.FindProductUseCase;
+import com.huerto.api.application.usecase.product.UpdateProductUseCase;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Product;
@@ -33,6 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(
@@ -51,6 +53,7 @@ class ProductControllerTest {
     @MockBean CreateProductUseCase createProductUseCase;
     @MockBean ListProductsUseCase listProductsUseCase;
     @MockBean FindProductUseCase findProductUseCase;
+    @MockBean UpdateProductUseCase updateProductUseCase;
 
     @Test
     void should_return_201_when_product_is_created() throws Exception {
@@ -190,6 +193,49 @@ class ProductControllerTest {
 
         mockMvc.perform(get("/api/v1/products/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return_200_when_product_is_updated() throws Exception {
+        UUID id = UUID.randomUUID();
+        UUID varietyId = UUID.randomUUID();
+        Variety variety = new Variety(varietyId, "Raf", "Tomato");
+
+        ProductRequest request = new ProductRequest(
+                "Updated Tomato", varietyId, new BigDecimal("3.00"), Unit.KG, 80
+        );
+
+        Product updated = new Product(
+                id, "Updated Tomato", variety,
+                Price.of("3.00"), Unit.KG, 80, true, 1
+        );
+
+        when(updateProductUseCase.execute(any())).thenReturn(updated);
+
+        mockMvc.perform(put("/api/v1/products/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.name").value("Updated Tomato"))
+                .andExpect(jsonPath("$.price").value(3.00));
+    }
+
+    @Test
+    void should_return_404_when_updating_nonexistent_product() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        ProductRequest request = new ProductRequest(
+                "Updated Tomato", UUID.randomUUID(), new BigDecimal("3.00"), Unit.KG, 80
+        );
+
+        when(updateProductUseCase.execute(any()))
+                .thenThrow(new ResourceNotFoundException("Product", id));
+
+        mockMvc.perform(put("/api/v1/products/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
     }
 }
