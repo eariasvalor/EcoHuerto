@@ -4,6 +4,8 @@ import com.huerto.api.domain.model.Customer;
 import com.huerto.api.domain.ports.out.CustomerRepository;
 import com.huerto.api.infrastructure.adapters.out.persistence.mapper.CustomerEntityMapper;
 import com.huerto.api.infrastructure.adapters.out.persistence.repository.CustomerJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -39,5 +41,10 @@ public class CustomerJpaAdapter implements CustomerRepository {
     @Override
     public boolean existsByEmail(String email) {
         return jpaRepository.existsByEmail(email);
+    }
+
+    @Override
+    public Page<Customer> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(mapper::toDomain);
     }
 }

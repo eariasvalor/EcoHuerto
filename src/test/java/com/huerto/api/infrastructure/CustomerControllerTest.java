@@ -3,6 +3,7 @@ package com.huerto.api.infrastructure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huerto.api.application.usecase.customer.FindCustomerUseCase;
 import com.huerto.api.application.usecase.customer.UpdateCustomerUseCase;
+import com.huerto.api.application.usecase.customer.ListCustomersUseCase;
 import com.huerto.api.infrastructure.adapters.in.web.dto.UpdateCustomerRequest;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Customer;
@@ -17,10 +18,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -44,6 +50,7 @@ class CustomerControllerTest {
 
     @MockBean FindCustomerUseCase findCustomerUseCase;
     @MockBean UpdateCustomerUseCase updateCustomerUseCase;
+    @MockBean ListCustomersUseCase listCustomersUseCase;
 
     private Customer buildCustomer(UUID id) {
         Credentials credentials = new Credentials(
@@ -122,5 +129,37 @@ class CustomerControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void should_return_200_with_paginated_customers() throws Exception {
+        UUID id = UUID.randomUUID();
+        Customer customer = buildCustomer(id);
+        Page<Customer> page = new PageImpl<>(
+                List.of(customer), PageRequest.of(0, 10), 1
+        );
+
+        when(listCustomersUseCase.execute(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/customers")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("John Doe"));
+    }
+
+    @Test
+    void should_return_200_with_empty_page_when_no_customers() throws Exception {
+        when(listCustomersUseCase.execute(any(Pageable.class))).thenReturn(Page.empty());
+
+        mockMvc.perform(get("/api/v1/customers")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(0));
     }
 }
