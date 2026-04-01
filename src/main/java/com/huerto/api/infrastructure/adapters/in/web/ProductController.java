@@ -25,7 +25,7 @@ import java.util.UUID;
 public class ProductController {
 
     private final CreateProductUseCase createProductUseCase;
-    private final ListProductsUseCase listProductsUseCase;
+    private final ListAvailableProductsUseCase listAvailableProductsUseCase;
     private final FindProductUseCase findProductUseCase;
     private final UpdateProductUseCase updateProductUseCase;
     private final UpdateStockUseCase updateStockUseCase;
@@ -33,14 +33,14 @@ public class ProductController {
     private final DeleteProductUseCase deleteProductUseCase;
 
     public ProductController(CreateProductUseCase createProductUseCase,
-                             ListProductsUseCase listProductsUseCase,
+                             ListAvailableProductsUseCase listAvailableProductsUseCase,
                              FindProductUseCase findProductUseCase,
                              UpdateProductUseCase updateProductUseCase,
                              UpdateStockUseCase updateStockUseCase,
                              ToggleAvailabilityUseCase toggleAvailabilityUseCase,
                              DeleteProductUseCase deleteProductUseCase) {
         this.createProductUseCase = createProductUseCase;
-        this.listProductsUseCase = listProductsUseCase;
+        this.listAvailableProductsUseCase = listAvailableProductsUseCase;
         this.findProductUseCase = findProductUseCase;
         this.updateProductUseCase = updateProductUseCase;
         this.updateStockUseCase = updateStockUseCase;
@@ -70,7 +70,7 @@ public class ProductController {
     @ApiResponse(responseCode = "200", description = "Paginated product list")
     @GetMapping
     public Page<ProductResponse> list(Pageable pageable) {
-        return listProductsUseCase.execute(pageable)
+        return listAvailableProductsUseCase.execute(pageable)
                 .map(ProductResponse::from);
     }
 

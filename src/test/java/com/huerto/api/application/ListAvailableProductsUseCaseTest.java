@@ -1,6 +1,6 @@
 package com.huerto.api.application;
 
-import com.huerto.api.application.impl.product.ListProductsUseCaseImpl;
+import com.huerto.api.application.impl.product.ListAvailableProductsUseCaseImpl;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
@@ -23,10 +23,11 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ListProductsUseCaseTest {
+class ListAvailableProductsUseCaseTest {
 
     @Mock ProductRepository productRepository;
-    @InjectMocks ListProductsUseCaseImpl listProductsUseCase;
+    @InjectMocks
+    ListAvailableProductsUseCaseImpl listProductsUseCase;
 
     @Test
     void should_return_only_available_products() {

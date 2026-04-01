@@ -1,7 +1,7 @@
 package com.huerto.api.infrastructure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huerto.api.application.usecase.product.CreateProductUseCase;
-import com.huerto.api.application.usecase.product.ListProductsUseCase;
+import com.huerto.api.application.usecase.product.ListAvailableProductsUseCase;
 import com.huerto.api.application.usecase.product.FindProductUseCase;
 import com.huerto.api.application.usecase.product.UpdateStockUseCase;
 import com.huerto.api.application.usecase.product.UpdateProductUseCase;
@@ -60,7 +60,8 @@ class ProductControllerTest {
     @Autowired ObjectMapper objectMapper;
 
     @MockBean CreateProductUseCase createProductUseCase;
-    @MockBean ListProductsUseCase listProductsUseCase;
+    @MockBean
+    ListAvailableProductsUseCase listAvailableProductsUseCase;
     @MockBean FindProductUseCase findProductUseCase;
     @MockBean UpdateProductUseCase updateProductUseCase;
     @MockBean UpdateStockUseCase updateStockUseCase;
@@ -153,7 +154,7 @@ class ProductControllerTest {
                 2
         );
 
-        when(listProductsUseCase.execute(any(Pageable.class))).thenReturn(page);
+        when(listAvailableProductsUseCase.execute(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/products")
                         .param("page", "0")
@@ -168,7 +169,7 @@ class ProductControllerTest {
 
     @Test
     void should_return_200_with_empty_list_when_no_products() throws Exception {
-        when(listProductsUseCase.execute(any(Pageable.class))).thenReturn(Page.empty());
+        when(listAvailableProductsUseCase.execute(any(Pageable.class))).thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/v1/products")
                         .param("page", "0")
