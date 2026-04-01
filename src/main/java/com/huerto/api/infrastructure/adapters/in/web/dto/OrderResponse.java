@@ -15,7 +15,8 @@ public record OrderResponse(
         List<OrderLineResponse> lines,
         OrderStatus status,
         BigDecimal total,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        boolean possibleDuplicate
 ) {
     public record OrderLineResponse(
             UUID id,
@@ -25,7 +26,7 @@ public record OrderResponse(
             BigDecimal subtotal
     ) {}
 
-    public static OrderResponse from(Order order) {
+    public static OrderResponse from(Order order, boolean possibleDuplicate) {
         List<OrderLineResponse> lines = order.lines().stream()
                 .map(line -> new OrderLineResponse(
                         line.id(),
@@ -43,7 +44,12 @@ public record OrderResponse(
                 lines,
                 order.status(),
                 order.total().amount(),
-                order.createdAt()
+                order.createdAt(),
+                possibleDuplicate
         );
+    }
+
+    public static OrderResponse from(Order order) {
+        return from(order, false);
     }
 }

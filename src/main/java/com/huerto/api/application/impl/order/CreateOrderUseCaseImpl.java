@@ -2,6 +2,7 @@ package com.huerto.api.application.impl.order;
 
 import com.fasterxml.uuid.Generators;
 import com.huerto.api.application.commands.CreateOrderCommand;
+import com.huerto.api.application.usecase.order.CreateOrderResult;
 import com.huerto.api.application.usecase.order.CreateOrderUseCase;
 import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.exception.InsufficientStockException;
@@ -16,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -35,11 +36,13 @@ public class CreateOrderUseCaseImpl implements CreateOrderUseCase {
     }
 
     @Override
-    public Order execute(CreateOrderCommand command) {
+    public CreateOrderResult execute(CreateOrderCommand command) {
         customerRepository.findById(command.customerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", command.customerId()));
 
         List<OrderLine> lines = buildLines(command.lines());
+
+        boolean possibleDuplicate = isDuplicate(command);
 
         Order order = new Order(
                 Generators.timeBasedEpochGenerator().generate(),
@@ -51,7 +54,28 @@ public class CreateOrderUseCaseImpl implements CreateOrderUseCase {
                 0
         );
 
-        return orderRepository.save(order);
+        return new CreateOrderResult(orderRepository.save(order), possibleDuplicate);
+    }
+
+    private boolean isDuplicate(CreateOrderCommand command) {
+        List<Order> pendingOrders = orderRepository.findByCustomerIdAndStatus(
+                command.customerId(), OrderStatus.PENDING_CONFIRMATION);
+
+        return pendingOrders.stream().anyMatch(existing ->
+                hasSameLines(existing.lines(), command.lines())
+        );
+    }
+
+    private boolean hasSameLines(List<OrderLine> existingLines,
+                                 List<CreateOrderCommand.OrderLineCommand> newLines) {
+        if (existingLines.size() != newLines.size()) return false;
+
+        return newLines.stream().allMatch(newLine ->
+                existingLines.stream().anyMatch(existing ->
+                        existing.product().id().equals(newLine.productId()) &&
+                                existing.quantity() == newLine.quantity()
+                )
+        );
     }
 
     private List<OrderLine> buildLines(List<CreateOrderCommand.OrderLineCommand> lineCommands) {
@@ -73,7 +97,6 @@ public class CreateOrderUseCaseImpl implements CreateOrderUseCase {
     }
 
     private String generateVisibleId() {
-        return "HUE-" + String.format("%04d",
-                (int)(Math.random() * 9000) + 1000);
+        return "HUE-" + String.format("%04d", (int)(Math.random() * 9000) + 1000);
     }
 }

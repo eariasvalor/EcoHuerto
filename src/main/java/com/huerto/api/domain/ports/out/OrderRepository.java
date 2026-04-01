@@ -17,4 +17,5 @@ public interface OrderRepository {
     List<Order> findAll();
     Page<Order> findByStatus(OrderStatus status, Pageable pageable);
     Page<Order> findAll(Pageable pageable);
+    List<Order> findByCustomerIdAndStatus(UUID customerId, OrderStatus status);
 }

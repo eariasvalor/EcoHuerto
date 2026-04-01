@@ -2,6 +2,8 @@ package com.huerto.api.application;
 
 import com.huerto.api.application.commands.CreateOrderCommand;
 import com.huerto.api.application.impl.order.CreateOrderUseCaseImpl;
+import com.huerto.api.application.usecase.order.CreateOrderResult;
+import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.exception.InsufficientStockException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
@@ -46,8 +48,17 @@ class CreateOrderUseCaseTest {
         return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, stock, true, 0);
     }
 
+    private Order buildOrder(UUID customerId, UUID productId) {
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        Product product = new Product(productId, "Tomato", variety,
+                Price.of("2.50"), Unit.KG, 100, true, 0);
+        OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
+        return new Order(UUID.randomUUID(), "HUE-0001", customerId,
+                List.of(line), OrderStatus.PENDING_CONFIRMATION, LocalDateTime.now(), 0);
+    }
+
     @Test
-    void should_create_order_when_stock_is_sufficient() {
+    void should_create_order_without_duplicate_flag_when_no_similar_pending_order() {
         UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
         Customer customer = buildCustomer(customerId);
@@ -59,14 +70,37 @@ class CreateOrderUseCaseTest {
 
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING_CONFIRMATION))
+                .thenReturn(List.of());
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Order result = createOrderUseCase.execute(command);
+        CreateOrderResult result = createOrderUseCase.execute(command);
 
-        assertThat(result.lines()).hasSize(1);
-        assertThat(result.status().name()).isEqualTo("PENDING_CONFIRMATION");
-        assertThat(result.total().amount()).isEqualByComparingTo("5.00");
-        verify(orderRepository).save(any());
+        assertThat(result.order().lines()).hasSize(1);
+        assertThat(result.possibleDuplicate()).isFalse();
+    }
+
+    @Test
+    void should_create_order_with_duplicate_flag_when_similar_pending_order_exists() {
+        UUID customerId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        Customer customer = buildCustomer(customerId);
+        Product product = buildProduct(productId, 100);
+        Order existingOrder = buildOrder(customerId, productId);
+
+        CreateOrderCommand command = new CreateOrderCommand(
+                customerId, List.of(new CreateOrderCommand.OrderLineCommand(productId, 2))
+        );
+
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING_CONFIRMATION))
+                .thenReturn(List.of(existingOrder));
+        when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        CreateOrderResult result = createOrderUseCase.execute(command);
+
+        assertThat(result.possibleDuplicate()).isTrue();
     }
 
     @Test

@@ -1,13 +1,7 @@
 package com.huerto.api.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huerto.api.application.usecase.order.CreateOrderUseCase;
-import com.huerto.api.application.usecase.order.FindOrderUseCase;
-import com.huerto.api.application.usecase.order.ListOrdersUseCase;
-import com.huerto.api.application.usecase.order.ConfirmOrderUseCase;
-import com.huerto.api.application.usecase.order.StartPreparationUseCase;
-import com.huerto.api.application.usecase.order.MarkReadyUseCase;
-import com.huerto.api.application.usecase.order.CancelOrderUseCase;
+import com.huerto.api.application.usecase.order.*;
 import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.exception.InsufficientStockException;
@@ -85,7 +79,7 @@ class OrderControllerTest {
     @BeforeEach
     void setUp() {
         when(securityContext.getCurrentUserId()).thenReturn(UUID.randomUUID());
-        when(securityContext.isAdmin()).thenReturn(true); // admin bypasea el ownership check
+        when(securityContext.isAdmin()).thenReturn(true);
     }
 
     @Test
@@ -100,7 +94,8 @@ class OrderControllerTest {
         );
 
         Order order = buildOrder(orderId, customerId);
-        when(createOrderUseCase.execute(any())).thenReturn(order);
+        when(createOrderUseCase.execute(any()))
+                .thenReturn(new CreateOrderResult(order, false));
 
         mockMvc.perform(post("/api/v1/orders")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -110,7 +105,8 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.visibleId").value("HUE-0001"))
                 .andExpect(jsonPath("$.status").value("PENDING_CONFIRMATION"))
                 .andExpect(jsonPath("$.lines.length()").value(1))
-                .andExpect(jsonPath("$.total").value(5.00));
+                .andExpect(jsonPath("$.total").value(5.00))
+                .andExpect(jsonPath("$.possibleDuplicate").value(false));
     }
 
     @Test
@@ -417,5 +413,27 @@ class OrderControllerTest {
         mockMvc.perform(patch("/api/v1/orders/{id}/cancel", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void should_return_201_with_possible_duplicate_flag_when_similar_order_exists() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+
+        CreateOrderRequest request = new CreateOrderRequest(
+                customerId,
+                List.of(new CreateOrderRequest.OrderLineRequest(productId, 2))
+        );
+
+        Order order = buildOrder(orderId, customerId);
+        when(createOrderUseCase.execute(any()))
+                .thenReturn(new CreateOrderResult(order, true));
+
+        mockMvc.perform(post("/api/v1/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.possibleDuplicate").value(true));
     }
 }

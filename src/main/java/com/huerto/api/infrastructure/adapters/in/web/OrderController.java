@@ -1,6 +1,5 @@
 package com.huerto.api.infrastructure.adapters.in.web;
 
-import com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.Mark;
 import com.huerto.api.application.commands.CreateOrderCommand;
 import com.huerto.api.application.usecase.order.*;
 import com.huerto.api.domain.enums.OrderStatus;
@@ -66,7 +65,8 @@ public class OrderController {
                 .map(l -> new CreateOrderCommand.OrderLineCommand(l.productId(), l.quantity()))
                 .toList();
         CreateOrderCommand command = new CreateOrderCommand(request.customerId(), lines);
-        return OrderResponse.from(createOrderUseCase.execute(command));
+        CreateOrderResult result = createOrderUseCase.execute(command);
+        return OrderResponse.from(result.order(), result.possibleDuplicate());
     }
 
     @GetMapping
