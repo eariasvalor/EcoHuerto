@@ -18,6 +18,8 @@ import com.huerto.api.domain.valueobject.Price;
 import com.huerto.api.infrastructure.adapters.in.web.OrderController;
 import com.huerto.api.infrastructure.adapters.in.web.dto.CreateOrderRequest;
 import com.huerto.api.infrastructure.config.SecurityConfig;
+import com.huerto.api.infrastructure.config.SecurityContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -64,6 +66,7 @@ class OrderControllerTest {
     @MockBean StartPreparationUseCase startPreparationUseCase;
     @MockBean MarkReadyUseCase markReadyUseCase;
     @MockBean CancelOrderUseCase cancelOrderUseCase;
+    @MockBean SecurityContext securityContext;
 
     private Order buildOrder(UUID orderId, UUID customerId) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
@@ -77,6 +80,12 @@ class OrderControllerTest {
                 List.of(line), OrderStatus.PENDING_CONFIRMATION,
                 LocalDateTime.now(), 0
         );
+    }
+
+    @BeforeEach
+    void setUp() {
+        when(securityContext.getCurrentUserId()).thenReturn(UUID.randomUUID());
+        when(securityContext.isAdmin()).thenReturn(true); // admin bypasea el ownership check
     }
 
     @Test
@@ -368,14 +377,13 @@ class OrderControllerTest {
     void should_return_200_when_order_is_cancelled() throws Exception {
         UUID orderId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
-        Order cancelled = new Order(
-                orderId, "HUE-0001", customerId,
-                buildOrder(orderId, customerId).lines(),
-                OrderStatus.CANCELLED,
-                LocalDateTime.now(), 1
-        );
+        Order order = buildOrder(orderId, customerId);
 
-        when(cancelOrderUseCase.execute(orderId)).thenReturn(cancelled);
+        when(findOrderUseCase.execute(orderId)).thenReturn(order);
+        when(cancelOrderUseCase.execute(orderId)).thenReturn(
+                new Order(orderId, "HUE-0001", customerId,
+                        order.lines(), OrderStatus.CANCELLED, LocalDateTime.now(), 1)
+        );
 
         mockMvc.perform(patch("/api/v1/orders/{id}/cancel", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -387,7 +395,7 @@ class OrderControllerTest {
     void should_return_404_when_order_not_found_on_cancel() throws Exception {
         UUID orderId = UUID.randomUUID();
 
-        when(cancelOrderUseCase.execute(orderId))
+        when(findOrderUseCase.execute(orderId))
                 .thenThrow(new ResourceNotFoundException("Order", orderId));
 
         mockMvc.perform(patch("/api/v1/orders/{id}/cancel", orderId)
@@ -398,7 +406,10 @@ class OrderControllerTest {
     @Test
     void should_return_422_when_order_already_cancelled() throws Exception {
         UUID orderId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        Order order = buildOrder(orderId, customerId);
 
+        when(findOrderUseCase.execute(orderId)).thenReturn(order);
         when(cancelOrderUseCase.execute(orderId))
                 .thenThrow(new InvalidStatusTransitionException(
                         OrderStatus.CANCELLED, OrderStatus.CANCELLED));

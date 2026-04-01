@@ -4,8 +4,10 @@ import com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.Mark;
 import com.huerto.api.application.commands.CreateOrderCommand;
 import com.huerto.api.application.usecase.order.*;
 import com.huerto.api.domain.enums.OrderStatus;
+import com.huerto.api.domain.model.Order;
 import com.huerto.api.infrastructure.adapters.in.web.dto.CreateOrderRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.OrderResponse;
+import com.huerto.api.infrastructure.config.SecurityContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +34,7 @@ public class OrderController {
     private final StartPreparationUseCase startPreparationUseCase;
     private final MarkReadyUseCase markReadyUseCase;
     private final CancelOrderUseCase cancelOrderUseCase;
+    private final SecurityContext securityContext;
 
     public OrderController(CreateOrderUseCase createOrderUseCase,
                            ListOrdersUseCase listOrdersUseCase,
@@ -38,7 +42,8 @@ public class OrderController {
                            ConfirmOrderUseCase confirmOrderUseCase,
                            StartPreparationUseCase startPreparationUseCase,
                            MarkReadyUseCase markReadyUseCase,
-                           CancelOrderUseCase cancelOrderUseCase) {
+                           CancelOrderUseCase cancelOrderUseCase,
+                           SecurityContext securityContext) {
         this.createOrderUseCase = createOrderUseCase;
         this.listOrdersUseCase = listOrdersUseCase;
         this.findOrderUseCase = findOrderUseCase;
@@ -46,6 +51,7 @@ public class OrderController {
         this.startPreparationUseCase = startPreparationUseCase;
         this.markReadyUseCase = markReadyUseCase;
         this.cancelOrderUseCase = cancelOrderUseCase;
+        this.securityContext = securityContext;
     }
 
     @PostMapping
@@ -76,10 +82,21 @@ public class OrderController {
     @GetMapping("/{id}")
     @Operation(summary = "Find an order by id")
             @ApiResponse(responseCode = "200", description = "Order found")
+            @ApiResponse(responseCode = "403", description = "Cannot access another customer's order")
             @ApiResponse(responseCode = "404", description = "Order not found")
     public OrderResponse findById(
             @Parameter(description = "Order UUID") @PathVariable UUID id) {
-        return OrderResponse.from(findOrderUseCase.execute(id));
+
+        UUID requesterId = securityContext.getCurrentUserId();
+        boolean isAdmin  = securityContext.isAdmin();
+
+        Order order = findOrderUseCase.execute(id);
+
+        if (!isAdmin && !order.customerId().equals(requesterId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You can only access your own orders");
+
+        return OrderResponse.from(order);
     }
 
     @PatchMapping("/{id}/confirm")
@@ -115,10 +132,21 @@ public class OrderController {
     @PatchMapping("/{id}/cancel")
     @Operation(summary = "Cancel an order")
             @ApiResponse(responseCode = "200", description = "Order cancelled")
+            @ApiResponse(responseCode = "403", description = "Cannot cancel another customer's order")
             @ApiResponse(responseCode = "404", description = "Order not found")
             @ApiResponse(responseCode = "422", description = "Order already cancelled")
     public OrderResponse cancel(
             @Parameter(description = "Order UUID") @PathVariable UUID id) {
+
+        UUID requesterId = securityContext.getCurrentUserId();
+        boolean isAdmin  = securityContext.isAdmin();
+
+        Order order = findOrderUseCase.execute(id);
+
+        if (!isAdmin && !order.customerId().equals(requesterId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You can only cancel your own orders");
+
         return OrderResponse.from(cancelOrderUseCase.execute(id));
     }
 }

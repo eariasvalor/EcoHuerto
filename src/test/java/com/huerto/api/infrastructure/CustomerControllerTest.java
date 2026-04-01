@@ -11,6 +11,8 @@ import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
 import com.huerto.api.infrastructure.adapters.in.web.CustomerController;
 import com.huerto.api.infrastructure.config.SecurityConfig;
+import com.huerto.api.infrastructure.config.SecurityContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -51,12 +53,19 @@ class CustomerControllerTest {
     @MockBean FindCustomerUseCase findCustomerUseCase;
     @MockBean UpdateCustomerUseCase updateCustomerUseCase;
     @MockBean ListCustomersUseCase listCustomersUseCase;
+    @MockBean SecurityContext securityContext;
 
+    private final UUID currentUserId = UUID.randomUUID();
     private Customer buildCustomer(UUID id) {
         Credentials credentials = new Credentials(
                 new Email("john@huerto.com"), "hashed_password"
         );
         return new Customer(id, "John Doe", credentials, LocalDateTime.now(), 0);
+    }
+    @BeforeEach
+    void setUp() {
+        when(securityContext.getCurrentUserId()).thenReturn(currentUserId);
+        when(securityContext.isAdmin()).thenReturn(true);
     }
 
     @Test
