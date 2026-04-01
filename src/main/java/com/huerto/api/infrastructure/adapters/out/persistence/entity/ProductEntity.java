@@ -19,7 +19,7 @@ public class ProductEntity {
     @Column(nullable = false)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "variety_id", nullable = false)
     private VarietyEntity variety;
 

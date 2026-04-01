@@ -41,7 +41,7 @@ public class LoginAdminUseCaseImpl implements LoginAdminUseCase {
         return tokenProvider.generateToken(
                 admin.id(),
                 admin.credentials().email().value(),
-                admin.permission().name()
+                "ADMIN"
         );
     }
 }
