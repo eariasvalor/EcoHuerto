@@ -70,4 +70,9 @@ public class ProductJpaAdapter implements ProductRepository {
     public boolean existsById(UUID id) {
         return jpaRepository.existsById(id);
     }
+
+    @Override
+    public Page<Product> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(mapper::toDomain);
+    }
 }

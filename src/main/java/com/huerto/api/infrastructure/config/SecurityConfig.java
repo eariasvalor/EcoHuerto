@@ -82,6 +82,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,   "/api/v1/varieties").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/varieties/{id}").hasRole(ROLE_ADMIN)
 
+                        //ProductAdmin
+                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/products").hasRole(ROLE_ADMIN)
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

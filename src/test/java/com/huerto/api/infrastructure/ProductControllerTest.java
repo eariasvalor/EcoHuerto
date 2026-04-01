@@ -7,6 +7,7 @@ import com.huerto.api.application.usecase.product.UpdateStockUseCase;
 import com.huerto.api.application.usecase.product.UpdateProductUseCase;
 import com.huerto.api.application.usecase.product.ToggleAvailabilityUseCase;
 import com.huerto.api.application.usecase.product.DeleteProductUseCase;
+import com.huerto.api.application.usecase.product.ListAllProductsUseCase;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -65,6 +66,7 @@ class ProductControllerTest {
     @MockBean UpdateStockUseCase updateStockUseCase;
     @MockBean ToggleAvailabilityUseCase toggleAvailabilityUseCase;
     @MockBean DeleteProductUseCase deleteProductUseCase;
+    @MockBean ListAllProductsUseCase listAllProductsUseCase;
 
     @Test
     void should_return_201_when_product_is_created() throws Exception {
@@ -343,4 +345,5 @@ class ProductControllerTest {
         mockMvc.perform(delete("/api/v1/products/{id}", id))
                 .andExpect(status().isNotFound());
     }
+
 }

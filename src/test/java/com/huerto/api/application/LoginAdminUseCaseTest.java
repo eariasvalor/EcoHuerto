@@ -51,7 +51,7 @@ class LoginAdminUseCaseTest {
         when(administratorRepository.findByEmail("admin@huerto.com"))
                 .thenReturn(Optional.of(admin));
         when(passwordHasher.verify("secret1234", "hashed_password")).thenReturn(true);
-        when(tokenProvider.generateToken(id, "admin@huerto.com", "OWNER"))
+        when(tokenProvider.generateToken(id, "admin@huerto.com", "ADMIN"))
                 .thenReturn("admin.jwt.token");
 
         String token = loginAdminUseCase.execute(command);

@@ -17,4 +17,5 @@ public interface ProductRepository {
     boolean existsByVarietyId(UUID varietyId);
     void deleteById(UUID id);
     boolean existsById(UUID id);
+    Page<Product> findAll(Pageable pageable);
 }
