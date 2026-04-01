@@ -53,4 +53,9 @@ public class VarietyJpaAdapter implements VarietyRepository {
         jpaRepository.deleteById(id);
     }
 
+    @Override
+    public boolean existsByNameAndProductCategory(String name, String productCategory) {
+        return jpaRepository.existsByNameAndProductCategory(name, productCategory);
+    }
+
 }

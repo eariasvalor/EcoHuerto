@@ -15,4 +15,5 @@ public interface VarietyRepository {
     List<Variety> findAll();
     boolean existsById(UUID id);
     void deleteById(UUID id);
+    boolean existsByNameAndProductCategory(String name, String productCategory);
 }

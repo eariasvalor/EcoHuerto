@@ -81,4 +81,10 @@ public class GlobalExceptionHandler {
         return errorBody(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
+    @ExceptionHandler(DuplicateVarietyException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, Object> handleDuplicateVariety(DuplicateVarietyException ex) {
+        return errorBody(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
 }
