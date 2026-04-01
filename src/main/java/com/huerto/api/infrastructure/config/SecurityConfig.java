@@ -88,4 +88,12 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    @Bean
+    public org.springframework.security.core.userdetails.UserDetailsService userDetailsService() {
+        return username -> {
+            throw new org.springframework.security.core.userdetails.UsernameNotFoundException(
+                    "No UserDetailsService configured — using JWT authentication");
+        };
+    }
 }
