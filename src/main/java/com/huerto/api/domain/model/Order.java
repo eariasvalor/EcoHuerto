@@ -74,4 +74,12 @@ public record Order(
         if (this.status != expected)
             throw new InvalidStatusTransitionException(this.status, next);
     }
+
+    public Order revert() {
+        if (this.status == OrderStatus.CANCELLED || this.status == OrderStatus.READY_FOR_PICKUP)
+            throw new InvalidStatusTransitionException(this.status, OrderStatus.PENDING_CONFIRMATION);
+        if (this.status == OrderStatus.PENDING_CONFIRMATION)
+            throw new InvalidStatusTransitionException(this.status, OrderStatus.PENDING_CONFIRMATION);
+        return withStatus(OrderStatus.PENDING_CONFIRMATION);
+    }
 }

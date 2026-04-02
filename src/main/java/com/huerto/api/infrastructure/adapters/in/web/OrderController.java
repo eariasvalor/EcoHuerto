@@ -35,6 +35,7 @@ public class OrderController {
     private final CancelOrderUseCase cancelOrderUseCase;
     private final SecurityContext securityContext;
     private final ListMyOrdersUseCase listMyOrdersUseCase;
+    private final RevertOrderUseCase revertOrderUseCase;
 
     public OrderController(CreateOrderUseCase createOrderUseCase,
                            ListOrdersUseCase listOrdersUseCase,
@@ -44,7 +45,8 @@ public class OrderController {
                            MarkReadyUseCase markReadyUseCase,
                            CancelOrderUseCase cancelOrderUseCase,
                            SecurityContext securityContext,
-                           ListMyOrdersUseCase listMyOrdersUseCase) {
+                           ListMyOrdersUseCase listMyOrdersUseCase,
+                           RevertOrderUseCase revertOrderUseCase) {
         this.createOrderUseCase = createOrderUseCase;
         this.listOrdersUseCase = listOrdersUseCase;
         this.findOrderUseCase = findOrderUseCase;
@@ -54,6 +56,7 @@ public class OrderController {
         this.cancelOrderUseCase = cancelOrderUseCase;
         this.securityContext = securityContext;
         this.listMyOrdersUseCase = listMyOrdersUseCase;
+        this.revertOrderUseCase = revertOrderUseCase;
     }
 
     @PostMapping
@@ -159,5 +162,14 @@ public class OrderController {
     public Page<OrderResponse> listMyOrders(Pageable pageable) {
         UUID customerId = securityContext.getCurrentUserId();
         return listMyOrdersUseCase.execute(customerId, pageable).map(OrderResponse::from);
+    }
+
+    @PatchMapping("/{id}/revert")
+    @Operation(summary = "Revert order to pending confirmation")
+            @ApiResponse(responseCode = "200", description = "Order reverted")
+            @ApiResponse(responseCode = "404", description = "Order not found")
+            @ApiResponse(responseCode = "422", description = "Invalid status transition")
+    public OrderResponse revert(@PathVariable UUID id) {
+        return OrderResponse.from(revertOrderUseCase.execute(id));
     }
 }

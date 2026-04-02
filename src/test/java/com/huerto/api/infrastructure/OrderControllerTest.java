@@ -61,6 +61,7 @@ class OrderControllerTest {
     @MockBean SecurityContext securityContext;
     @MockBean ListMyOrdersUseCase listMyOrdersUseCase;
     @MockBean GetOrderStatsUseCase getOrderStatsUseCase;
+    @MockBean RevertOrderUseCase revertOrderUseCase;
 
     @BeforeEach
     void setUp() {
@@ -458,5 +459,48 @@ class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(0));
+    }
+
+    @Test
+    void should_return_200_when_order_is_reverted() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        Order reverted = new Order(
+                orderId, "HUE-0001", customerId, "John Doe",
+                buildOrder(orderId, customerId).lines(),
+                OrderStatus.PENDING_CONFIRMATION, LocalDateTime.now(), 1
+        );
+
+        when(revertOrderUseCase.execute(orderId)).thenReturn(reverted);
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/revert", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PENDING_CONFIRMATION"));
+    }
+
+    @Test
+    void should_return_404_when_order_not_found_on_revert() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        when(revertOrderUseCase.execute(orderId))
+                .thenThrow(new ResourceNotFoundException("Order", orderId));
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/revert", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return_422_when_order_cannot_be_reverted() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        when(revertOrderUseCase.execute(orderId))
+                .thenThrow(new InvalidStatusTransitionException(
+                        OrderStatus.CANCELLED, OrderStatus.PENDING_CONFIRMATION));
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/revert", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnprocessableEntity());
     }
 }

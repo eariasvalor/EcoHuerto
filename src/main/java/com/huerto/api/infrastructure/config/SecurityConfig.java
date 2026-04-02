@@ -73,6 +73,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/{id}/preparation").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/{id}/ready").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/{id}/cancel").hasAnyRole(ROLE_CUSTOMER, ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/{id}/revert").hasRole(ROLE_ADMIN)
 
 
                         // Products admin
