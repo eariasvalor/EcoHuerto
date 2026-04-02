@@ -22,6 +22,9 @@ public record OrderResponse(
             UUID id,
             UUID productId,
             String productName,
+            String productVariety,
+            BigDecimal productPrice,
+            String productUnit,
             int quantity,
             BigDecimal subtotal
     ) {}
@@ -32,6 +35,9 @@ public record OrderResponse(
                         line.id(),
                         line.product().id(),
                         line.product().name(),
+                        line.product().variety().name(),
+                        line.product().price().amount(),
+                        line.product().unit().name(),
                         line.quantity(),
                         line.subtotal().amount()
                 ))
