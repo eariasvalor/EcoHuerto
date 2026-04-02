@@ -24,6 +24,11 @@ public class OrderEntity {
     @Column(name = "customer_id", nullable = false)
     private UUID customerId;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_id", insertable = false, updatable = false)
+    private CustomerEntity customer;
+
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderLineEntity> lines;
 

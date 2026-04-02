@@ -12,6 +12,7 @@ public record Order(
         UUID id,
         String visibleId,
         UUID customerId,
+        String customerName,
         List<OrderLine> lines,
         OrderStatus status,
         LocalDateTime createdAt,
@@ -26,6 +27,7 @@ public record Order(
             throw new IllegalArgumentException("Order must have at least one line");
         if (status == null)
             throw new IllegalArgumentException("Status must not be null");
+        customerName = customerName != null ? customerName : "";
         lines = List.copyOf(lines);
     }
 
@@ -64,7 +66,7 @@ public record Order(
 
 
     private Order withStatus(OrderStatus newStatus) {
-        return new Order(id, visibleId, customerId, lines,
+        return new Order(id, visibleId, customerId, customerName, lines,
                 newStatus, createdAt, version);
     }
 

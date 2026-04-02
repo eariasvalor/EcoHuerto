@@ -34,51 +34,64 @@ class ListOrdersUseCaseTest {
         );
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(
-                UUID.randomUUID(), "HUE-0001", UUID.randomUUID(),
+                UUID.randomUUID(), "HUE-0001", UUID.randomUUID(), "",
                 List.of(line), OrderStatus.PENDING_CONFIRMATION,
                 LocalDateTime.now(), 0
         );
     }
 
     @Test
-    void should_return_all_orders_when_status_is_null() {
+    void should_return_all_orders_when_no_filters() {
         Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
         Order order = buildOrder();
         Page<Order> page = new PageImpl<>(List.of(order), pageable, 1);
 
-        when(orderRepository.findAll(pageable)).thenReturn(page);
+        when(orderRepository.findAll(null, null, pageable)).thenReturn(page);
 
-        Page<Order> result = listOrdersUseCase.execute(null, pageable);
+        Page<Order> result = listOrdersUseCase.execute(null, null, pageable);
 
         assertThat(result.getContent()).hasSize(1);
-        verify(orderRepository).findAll(pageable);
-        verify(orderRepository, never()).findByStatus(any(), any());
+        verify(orderRepository).findAll(null, null, pageable);
     }
 
     @Test
-    void should_return_filtered_orders_when_status_is_provided() {
+    void should_filter_by_status() {
         Pageable pageable = PageRequest.of(0, 10);
         Order order = buildOrder();
         Page<Order> page = new PageImpl<>(List.of(order), pageable, 1);
 
-        when(orderRepository.findByStatus(OrderStatus.PENDING_CONFIRMATION, pageable))
+        when(orderRepository.findAll(OrderStatus.PENDING_CONFIRMATION, null, pageable))
                 .thenReturn(page);
 
         Page<Order> result = listOrdersUseCase.execute(
-                OrderStatus.PENDING_CONFIRMATION, pageable);
+                OrderStatus.PENDING_CONFIRMATION, null, pageable);
 
         assertThat(result.getContent()).hasSize(1);
-        verify(orderRepository).findByStatus(OrderStatus.PENDING_CONFIRMATION, pageable);
-        verify(orderRepository, never()).findAll(any(Pageable.class));
+        verify(orderRepository).findAll(OrderStatus.PENDING_CONFIRMATION, null, pageable);
+    }
+
+    @Test
+    void should_filter_by_customer_id() {
+        UUID customerId = UUID.randomUUID();
+        Pageable pageable = PageRequest.of(0, 10);
+        Order order = buildOrder();
+        Page<Order> page = new PageImpl<>(List.of(order), pageable, 1);
+
+        when(orderRepository.findAll(null, customerId, pageable)).thenReturn(page);
+
+        Page<Order> result = listOrdersUseCase.execute(null, customerId, pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        verify(orderRepository).findAll(null, customerId, pageable);
     }
 
     @Test
     void should_return_empty_page_when_no_orders() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        when(orderRepository.findAll(pageable)).thenReturn(Page.empty(pageable));
+        when(orderRepository.findAll(null, null, pageable)).thenReturn(Page.empty(pageable));
 
-        Page<Order> result = listOrdersUseCase.execute(null, pageable);
+        Page<Order> result = listOrdersUseCase.execute(null, null, pageable);
 
         assertThat(result.getContent()).isEmpty();
     }

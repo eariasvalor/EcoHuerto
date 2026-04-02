@@ -54,12 +54,7 @@ public class OrderJpaAdapter implements OrderRepository {
     public Page<Order> findByStatus(OrderStatus status, Pageable pageable) {
         return jpaRepository.findByStatus(status, pageable).map(mapper::toDomain);
     }
-
-    @Override
-    public Page<Order> findAll(Pageable pageable) {
-        return jpaRepository.findAll(pageable).map(mapper::toDomain);
-    }
-
+    
     @Override
     public List<Order> findByCustomerIdAndStatus(UUID customerId, OrderStatus status) {
         return jpaRepository.findByCustomerIdAndStatus(customerId, status)
@@ -74,5 +69,11 @@ public class OrderJpaAdapter implements OrderRepository {
     @Override
     public long countByStatus(OrderStatus status) {
         return jpaRepository.countByStatus(status);
+    }
+
+    @Override
+    public Page<Order> findAll(OrderStatus status, UUID customerId, Pageable pageable) {
+        return jpaRepository.findAllFiltered(status, customerId, pageable)
+                .map(mapper::toDomain);
     }
 }

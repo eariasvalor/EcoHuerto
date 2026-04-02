@@ -53,7 +53,7 @@ class CreateOrderUseCaseTest {
         Product product = new Product(productId, "Tomato", variety,
                 Price.of("2.50"), Unit.KG, 100, true, 0);
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
-        return new Order(UUID.randomUUID(), "HUE-0001", customerId,
+        return new Order(UUID.randomUUID(), "HUE-0001", customerId, "",
                 List.of(line), OrderStatus.PENDING_CONFIRMATION, LocalDateTime.now(), 0);
     }
 

@@ -27,20 +27,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import com.huerto.api.application.usecase.order.ListMyOrdersUseCase;
-
-
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(
@@ -67,6 +62,12 @@ class OrderControllerTest {
     @MockBean ListMyOrdersUseCase listMyOrdersUseCase;
     @MockBean GetOrderStatsUseCase getOrderStatsUseCase;
 
+    @BeforeEach
+    void setUp() {
+        when(securityContext.getCurrentUserId()).thenReturn(UUID.randomUUID());
+        when(securityContext.isAdmin()).thenReturn(true);
+    }
+
     private Order buildOrder(UUID orderId, UUID customerId) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
         Product product = new Product(
@@ -75,16 +76,10 @@ class OrderControllerTest {
         );
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(
-                orderId, "HUE-0001", customerId,
+                orderId, "HUE-0001", customerId, "John Doe",
                 List.of(line), OrderStatus.PENDING_CONFIRMATION,
                 LocalDateTime.now(), 0
         );
-    }
-
-    @BeforeEach
-    void setUp() {
-        when(securityContext.getCurrentUserId()).thenReturn(UUID.randomUUID());
-        when(securityContext.isAdmin()).thenReturn(true);
     }
 
     @Test
@@ -171,7 +166,7 @@ class OrderControllerTest {
         Order order = buildOrder(orderId, customerId);
         Page<Order> page = new PageImpl<>(List.of(order), PageRequest.of(0, 10), 1);
 
-        when(listOrdersUseCase.execute(any(), any())).thenReturn(page);
+        when(listOrdersUseCase.execute(any(), any(), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/orders")
                         .param("page", "0")
@@ -190,7 +185,8 @@ class OrderControllerTest {
         Order order = buildOrder(orderId, customerId);
         Page<Order> page = new PageImpl<>(List.of(order), PageRequest.of(0, 10), 1);
 
-        when(listOrdersUseCase.execute(eq(OrderStatus.PENDING_CONFIRMATION), any()))
+        when(listOrdersUseCase.execute(
+                eq(OrderStatus.PENDING_CONFIRMATION), any(), any(Pageable.class)))
                 .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/orders")
@@ -201,7 +197,6 @@ class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].status").value("PENDING_CONFIRMATION"));
     }
-
 
     @Test
     void should_return_200_when_order_exists() throws Exception {
@@ -236,10 +231,9 @@ class OrderControllerTest {
         UUID orderId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
         Order confirmed = new Order(
-                orderId, "HUE-0001", customerId,
+                orderId, "HUE-0001", customerId, "John Doe",
                 buildOrder(orderId, customerId).lines(),
-                OrderStatus.CONFIRMED,
-                LocalDateTime.now(), 1
+                OrderStatus.CONFIRMED, LocalDateTime.now(), 1
         );
 
         when(confirmOrderUseCase.execute(orderId)).thenReturn(confirmed);
@@ -280,10 +274,9 @@ class OrderControllerTest {
         UUID orderId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
         Order inPreparation = new Order(
-                orderId, "HUE-0001", customerId,
+                orderId, "HUE-0001", customerId, "John Doe",
                 buildOrder(orderId, customerId).lines(),
-                OrderStatus.IN_PREPARATION,
-                LocalDateTime.now(), 1
+                OrderStatus.IN_PREPARATION, LocalDateTime.now(), 1
         );
 
         when(startPreparationUseCase.execute(orderId)).thenReturn(inPreparation);
@@ -324,10 +317,9 @@ class OrderControllerTest {
         UUID orderId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
         Order ready = new Order(
-                orderId, "HUE-0001", customerId,
+                orderId, "HUE-0001", customerId, "John Doe",
                 buildOrder(orderId, customerId).lines(),
-                OrderStatus.READY_FOR_PICKUP,
-                LocalDateTime.now(), 1
+                OrderStatus.READY_FOR_PICKUP, LocalDateTime.now(), 1
         );
 
         when(markReadyUseCase.execute(orderId)).thenReturn(ready);
@@ -371,7 +363,7 @@ class OrderControllerTest {
 
         when(findOrderUseCase.execute(orderId)).thenReturn(order);
         when(cancelOrderUseCase.execute(orderId)).thenReturn(
-                new Order(orderId, "HUE-0001", customerId,
+                new Order(orderId, "HUE-0001", customerId, "John Doe",
                         order.lines(), OrderStatus.CANCELLED, LocalDateTime.now(), 1)
         );
 
@@ -467,5 +459,4 @@ class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(0));
     }
-
 }

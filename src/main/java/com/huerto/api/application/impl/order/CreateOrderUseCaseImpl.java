@@ -48,6 +48,7 @@ public class CreateOrderUseCaseImpl implements CreateOrderUseCase {
                 Generators.timeBasedEpochGenerator().generate(),
                 generateVisibleId(),
                 command.customerId(),
+                "",
                 lines,
                 OrderStatus.PENDING_CONFIRMATION,
                 LocalDateTime.now(),

@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @Transactional(readOnly = true)
 public class ListOrdersUseCaseImpl implements ListOrdersUseCase {
@@ -20,9 +22,7 @@ public class ListOrdersUseCaseImpl implements ListOrdersUseCase {
     }
 
     @Override
-    public Page<Order> execute(OrderStatus status, Pageable pageable) {
-        if (status != null)
-            return orderRepository.findByStatus(status, pageable);
-        return orderRepository.findAll(pageable);
+    public Page<Order> execute(OrderStatus status, UUID customerId, Pageable pageable) {
+        return orderRepository.findAll(status, customerId, pageable);
     }
 }

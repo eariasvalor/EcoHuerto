@@ -38,7 +38,7 @@ class StartPreparationUseCaseTest {
         );
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(
-                id, "HUE-0001", UUID.randomUUID(),
+                id, "HUE-0001", UUID.randomUUID(), "",
                 List.of(line), status, LocalDateTime.now(), 0
         );
     }

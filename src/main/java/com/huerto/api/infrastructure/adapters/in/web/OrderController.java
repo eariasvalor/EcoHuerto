@@ -73,13 +73,13 @@ public class OrderController {
     }
 
     @GetMapping
-    @Operation(summary = "List orders",
-            description = "Filterable by status. Sortable by createdAt or status via sort param")
-    @ApiResponse(responseCode = "200", description = "Paginated order list")
-    public Page<OrderResponse> list(
+    @Operation(summary = "List all orders with optional filters")
+    public Page<OrderResponse> listOrders(
             @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) UUID customerId,
             Pageable pageable) {
-        return listOrdersUseCase.execute(status, pageable).map(OrderResponse::from);
+        return listOrdersUseCase.execute(status, customerId, pageable)
+                .map(OrderResponse::from);
     }
 
     @GetMapping("/{id}")

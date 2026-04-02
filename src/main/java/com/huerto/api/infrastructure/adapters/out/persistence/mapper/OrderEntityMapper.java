@@ -43,6 +43,7 @@ public class OrderEntityMapper {
                 entity.getId(),
                 entity.getVisibleId(),
                 entity.getCustomerId(),
+                entity.getCustomer() != null ? entity.getCustomer().getName() : "",
                 lines,
                 entity.getStatus(),
                 entity.getCreatedAt(),
