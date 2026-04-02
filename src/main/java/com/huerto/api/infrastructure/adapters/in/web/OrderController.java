@@ -34,6 +34,7 @@ public class OrderController {
     private final MarkReadyUseCase markReadyUseCase;
     private final CancelOrderUseCase cancelOrderUseCase;
     private final SecurityContext securityContext;
+    private final ListMyOrdersUseCase listMyOrdersUseCase;
 
     public OrderController(CreateOrderUseCase createOrderUseCase,
                            ListOrdersUseCase listOrdersUseCase,
@@ -42,7 +43,8 @@ public class OrderController {
                            StartPreparationUseCase startPreparationUseCase,
                            MarkReadyUseCase markReadyUseCase,
                            CancelOrderUseCase cancelOrderUseCase,
-                           SecurityContext securityContext) {
+                           SecurityContext securityContext,
+                           ListMyOrdersUseCase listMyOrdersUseCase) {
         this.createOrderUseCase = createOrderUseCase;
         this.listOrdersUseCase = listOrdersUseCase;
         this.findOrderUseCase = findOrderUseCase;
@@ -51,6 +53,7 @@ public class OrderController {
         this.markReadyUseCase = markReadyUseCase;
         this.cancelOrderUseCase = cancelOrderUseCase;
         this.securityContext = securityContext;
+        this.listMyOrdersUseCase = listMyOrdersUseCase;
     }
 
     @PostMapping
@@ -148,5 +151,13 @@ public class OrderController {
                     "You can only cancel your own orders");
 
         return OrderResponse.from(cancelOrderUseCase.execute(id));
+    }
+
+    @GetMapping("/my")
+    @Operation(summary = "List my orders")
+    @ApiResponse(responseCode = "200", description = "Paginated list of current customer orders")
+    public Page<OrderResponse> listMyOrders(Pageable pageable) {
+        UUID customerId = securityContext.getCurrentUserId();
+        return listMyOrdersUseCase.execute(customerId, pageable).map(OrderResponse::from);
     }
 }

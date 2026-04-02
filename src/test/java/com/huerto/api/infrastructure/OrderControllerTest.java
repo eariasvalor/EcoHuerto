@@ -24,11 +24,13 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import com.huerto.api.application.usecase.order.ListMyOrdersUseCase;
 
 
 import java.time.LocalDateTime;
@@ -61,6 +63,7 @@ class OrderControllerTest {
     @MockBean MarkReadyUseCase markReadyUseCase;
     @MockBean CancelOrderUseCase cancelOrderUseCase;
     @MockBean SecurityContext securityContext;
+    @MockBean ListMyOrdersUseCase listMyOrdersUseCase;
 
     private Order buildOrder(UUID orderId, UUID customerId) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
@@ -197,17 +200,6 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.content[0].status").value("PENDING_CONFIRMATION"));
     }
 
-    @Test
-    void should_return_200_with_empty_page_when_no_orders() throws Exception {
-        when(listOrdersUseCase.execute(any(), any())).thenReturn(Page.empty());
-
-        mockMvc.perform(get("/api/v1/orders")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()").value(0));
-    }
 
     @Test
     void should_return_200_when_order_exists() throws Exception {
@@ -435,5 +427,42 @@ class OrderControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.possibleDuplicate").value(true));
+    }
+
+    @Test
+    void should_return_200_with_my_orders() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        Order order = buildOrder(orderId, customerId);
+        Page<Order> page = new PageImpl<>(
+                List.of(order), PageRequest.of(0, 10), 1
+        );
+
+        when(securityContext.getCurrentUserId()).thenReturn(customerId);
+        when(listMyOrdersUseCase.execute(eq(customerId), any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/orders/my")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].visibleId").value("HUE-0001"));
+    }
+
+    @Test
+    void should_return_200_with_empty_page_when_no_orders() throws Exception {
+        UUID customerId = UUID.randomUUID();
+
+        when(securityContext.getCurrentUserId()).thenReturn(customerId);
+        when(listMyOrdersUseCase.execute(eq(customerId), any(Pageable.class)))
+                .thenReturn(Page.empty());
+
+        mockMvc.perform(get("/api/v1/orders/my")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(0));
     }
 }
