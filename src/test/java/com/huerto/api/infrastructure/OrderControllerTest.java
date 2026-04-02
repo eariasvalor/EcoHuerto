@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import com.huerto.api.application.usecase.order.ListMyOrdersUseCase;
 
 
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -64,6 +65,7 @@ class OrderControllerTest {
     @MockBean CancelOrderUseCase cancelOrderUseCase;
     @MockBean SecurityContext securityContext;
     @MockBean ListMyOrdersUseCase listMyOrdersUseCase;
+    @MockBean GetOrderStatsUseCase getOrderStatsUseCase;
 
     private Order buildOrder(UUID orderId, UUID customerId) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
@@ -465,4 +467,5 @@ class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(0));
     }
+
 }

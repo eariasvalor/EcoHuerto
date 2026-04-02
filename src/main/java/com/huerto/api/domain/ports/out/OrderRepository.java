@@ -19,4 +19,5 @@ public interface OrderRepository {
     Page<Order> findAll(Pageable pageable);
     List<Order> findByCustomerIdAndStatus(UUID customerId, OrderStatus status);
     Page<Order> findByCustomerId(UUID customerId, Pageable pageable);
+    long countByStatus(OrderStatus status);
 }

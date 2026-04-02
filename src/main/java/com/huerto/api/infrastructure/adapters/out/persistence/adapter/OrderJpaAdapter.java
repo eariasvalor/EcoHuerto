@@ -70,4 +70,9 @@ public class OrderJpaAdapter implements OrderRepository {
     public Page<Order> findByCustomerId(UUID customerId, Pageable pageable) {
         return jpaRepository.findByCustomerId(customerId, pageable).map(mapper::toDomain);
     }
+
+    @Override
+    public long countByStatus(OrderStatus status) {
+        return jpaRepository.countByStatus(status);
+    }
 }
