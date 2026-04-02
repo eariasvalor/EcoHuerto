@@ -11,7 +11,7 @@ INSERT INTO administrators (
              gen_random_uuid(),
              'admin',
              'admin@huerto.com',
-             '$2a$12$JwTGhAiFKB/IkAVx5TSMVeWfisUG1igC09sVJH.vE1wzqEzvmp3rG',
+             '$2a$12$YNvEZ.X.5MnNX4A.IFq7Delwe1s7XZ.UPfpxDNGqR0i3zF18JyM0C',
              'OWNER',
              true,
              NOW(),
