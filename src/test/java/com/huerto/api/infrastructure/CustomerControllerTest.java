@@ -1,9 +1,12 @@
 package com.huerto.api.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huerto.api.application.commands.CreateCustomerCommand;
 import com.huerto.api.application.usecase.customer.FindCustomerUseCase;
 import com.huerto.api.application.usecase.customer.UpdateCustomerUseCase;
 import com.huerto.api.application.usecase.customer.ListCustomersUseCase;
+import com.huerto.api.application.usecase.customer.CreateCustomerUseCase;
+import com.huerto.api.domain.exception.DuplicateEmailException;
 import com.huerto.api.infrastructure.adapters.in.web.dto.UpdateCustomerRequest;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Customer;
@@ -20,11 +23,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -36,15 +42,13 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @WebMvcTest(
         value = CustomerController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class,
-        excludeFilters = @ComponentScan.Filter(
-                type = FilterType.ASSIGNABLE_TYPE,
-                classes = SecurityConfig.class
-        )
+        excludeAutoConfiguration = SecurityAutoConfiguration.class
 )
+@Import(SecurityConfig.class)
 class CustomerControllerTest {
 
     @Autowired MockMvc mockMvc;
@@ -54,6 +58,7 @@ class CustomerControllerTest {
     @MockBean UpdateCustomerUseCase updateCustomerUseCase;
     @MockBean ListCustomersUseCase listCustomersUseCase;
     @MockBean SecurityContext securityContext;
+    @MockBean CreateCustomerUseCase createCustomerUseCase;
 
     private final UUID currentUserId = UUID.randomUUID();
     private Customer buildCustomer(UUID id) {
@@ -69,6 +74,7 @@ class CustomerControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void should_return_200_when_customer_exists() throws Exception {
         UUID id = UUID.randomUUID();
         Customer customer = buildCustomer(id);
@@ -84,6 +90,7 @@ class CustomerControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void should_return_404_when_customer_not_found() throws Exception {
         UUID id = UUID.randomUUID();
 
@@ -96,6 +103,7 @@ class CustomerControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void should_return_200_when_customer_is_updated() throws Exception {
         UUID id = UUID.randomUUID();
         Credentials credentials = new Credentials(
@@ -116,6 +124,7 @@ class CustomerControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void should_return_404_when_customer_not_found_on_update() throws Exception {
         UUID id = UUID.randomUUID();
         UpdateCustomerRequest request = new UpdateCustomerRequest("John Updated", null);
@@ -130,6 +139,7 @@ class CustomerControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void should_return_400_when_name_is_blank_on_update() throws Exception {
         UUID id = UUID.randomUUID();
         UpdateCustomerRequest request = new UpdateCustomerRequest("", null);
@@ -141,6 +151,7 @@ class CustomerControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void should_return_200_with_paginated_customers() throws Exception {
         UUID id = UUID.randomUUID();
         Customer customer = buildCustomer(id);
@@ -161,6 +172,7 @@ class CustomerControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void should_return_200_with_empty_page_when_no_customers() throws Exception {
         when(listCustomersUseCase.execute(any(Pageable.class))).thenReturn(Page.empty());
 
@@ -170,5 +182,64 @@ class CustomerControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(0));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void should_return_201_with_created_customer() throws Exception {
+        UUID customerId = UUID.randomUUID();
+        Customer customer = new Customer(customerId, "Carlos García", new Credentials(new Email("carlos@huerto.com"), "hashed"),
+                LocalDateTime.now(), 0);
+
+        when(createCustomerUseCase.execute(any(CreateCustomerCommand.class))).thenReturn(customer);
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "name": "Carlos García",
+                    "email": "carlos@huerto.com",
+                    "password": "secret1234"
+                }
+            """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(customerId.toString()))
+                .andExpect(jsonPath("$.name").value("Carlos García"))
+                .andExpect(jsonPath("$.email").value("carlos@huerto.com"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void should_return_409_when_email_already_exists() throws Exception {
+        when(createCustomerUseCase.execute(any(CreateCustomerCommand.class)))
+                .thenThrow(new DuplicateEmailException("carlos@huerto.com"));
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "name": "Carlos García",
+                    "email": "carlos@huerto.com",
+                    "password": "secret1234"
+                }
+            """))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void should_return_403_when_not_admin() throws Exception {
+        when(createCustomerUseCase.execute(any())).thenThrow(new RuntimeException("should not reach here"));
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "name": "Carlos García",
+                    "email": "carlos@huerto.com",
+                    "password": "secret1234"
+                }
+            """))
+                .andExpect(status().isForbidden());
     }
 }

@@ -1,9 +1,13 @@
 package com.huerto.api.infrastructure.adapters.in.web;
 
+import com.huerto.api.application.commands.CreateCustomerCommand;
 import com.huerto.api.application.commands.UpdateCustomerCommand;
+import com.huerto.api.application.usecase.customer.CreateCustomerUseCase;
 import com.huerto.api.application.usecase.customer.FindCustomerUseCase;
 import com.huerto.api.application.usecase.customer.ListCustomersUseCase;
 import com.huerto.api.application.usecase.customer.UpdateCustomerUseCase;
+import com.huerto.api.domain.model.Customer;
+import com.huerto.api.infrastructure.adapters.in.web.dto.CreateCustomerRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.CustomerResponse;
 import com.huerto.api.infrastructure.adapters.in.web.dto.UpdateCustomerRequest;
 import com.huerto.api.infrastructure.config.SecurityContext;
@@ -16,6 +20,8 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -30,15 +36,18 @@ public class CustomerController {
     private final UpdateCustomerUseCase updateCustomerUseCase;
     private final ListCustomersUseCase listCustomersUseCase;
     private final SecurityContext securityContext;
+    private final CreateCustomerUseCase createCustomerUseCase;
 
     public CustomerController(FindCustomerUseCase findCustomerUseCase,
                               UpdateCustomerUseCase updateCustomerUseCase,
                               ListCustomersUseCase listCustomersUseCase,
-                              SecurityContext securityContext) {
+                              SecurityContext securityContext,
+                              CreateCustomerUseCase createCustomerUseCase) {
         this.findCustomerUseCase = findCustomerUseCase;
         this.updateCustomerUseCase = updateCustomerUseCase;
         this.listCustomersUseCase = listCustomersUseCase;
         this.securityContext = securityContext;
+        this.createCustomerUseCase = createCustomerUseCase;
     }
 
     @GetMapping("/{id}")
@@ -81,6 +90,18 @@ public class CustomerController {
     @ApiResponse(responseCode = "200", description = "Paginated customer list")
     public Page<CustomerResponse> list(Pageable pageable) {
         return listCustomersUseCase.execute(pageable).map(CustomerResponse::from);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CustomerResponse> create(@RequestBody @Valid CreateCustomerRequest request) {
+        CreateCustomerCommand command = new CreateCustomerCommand(
+                request.name(),
+                request.email(),
+                request.password()
+        );
+        Customer customer = createCustomerUseCase.execute(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(CustomerResponse.from(customer));
     }
 
 }
