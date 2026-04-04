@@ -2,10 +2,7 @@ package com.huerto.api.infrastructure.adapters.in.web;
 
 import com.huerto.api.application.commands.CreateCustomerCommand;
 import com.huerto.api.application.commands.UpdateCustomerCommand;
-import com.huerto.api.application.usecase.customer.CreateCustomerUseCase;
-import com.huerto.api.application.usecase.customer.FindCustomerUseCase;
-import com.huerto.api.application.usecase.customer.ListCustomersUseCase;
-import com.huerto.api.application.usecase.customer.UpdateCustomerUseCase;
+import com.huerto.api.application.usecase.customer.*;
 import com.huerto.api.domain.model.Customer;
 import com.huerto.api.infrastructure.adapters.in.web.dto.CreateCustomerRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.CustomerResponse;
@@ -37,17 +34,20 @@ public class CustomerController {
     private final ListCustomersUseCase listCustomersUseCase;
     private final SecurityContext securityContext;
     private final CreateCustomerUseCase createCustomerUseCase;
+    private final DeleteCustomerUseCase deleteCustomerUseCase;
 
     public CustomerController(FindCustomerUseCase findCustomerUseCase,
                               UpdateCustomerUseCase updateCustomerUseCase,
                               ListCustomersUseCase listCustomersUseCase,
                               SecurityContext securityContext,
-                              CreateCustomerUseCase createCustomerUseCase) {
+                              CreateCustomerUseCase createCustomerUseCase,
+                              DeleteCustomerUseCase deleteCustomerUseCase) {
         this.findCustomerUseCase = findCustomerUseCase;
         this.updateCustomerUseCase = updateCustomerUseCase;
         this.listCustomersUseCase = listCustomersUseCase;
         this.securityContext = securityContext;
         this.createCustomerUseCase = createCustomerUseCase;
+        this.deleteCustomerUseCase = deleteCustomerUseCase;
     }
 
     @GetMapping("/{id}")
@@ -102,6 +102,13 @@ public class CustomerController {
         );
         Customer customer = createCustomerUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(CustomerResponse.from(customer));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        deleteCustomerUseCase.execute(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

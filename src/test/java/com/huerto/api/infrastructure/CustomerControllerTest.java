@@ -6,6 +6,8 @@ import com.huerto.api.application.usecase.customer.FindCustomerUseCase;
 import com.huerto.api.application.usecase.customer.UpdateCustomerUseCase;
 import com.huerto.api.application.usecase.customer.ListCustomersUseCase;
 import com.huerto.api.application.usecase.customer.CreateCustomerUseCase;
+import com.huerto.api.application.usecase.customer.DeleteCustomerUseCase;
+import com.huerto.api.domain.exception.CustomerNotFoundException;
 import com.huerto.api.domain.exception.DuplicateEmailException;
 import com.huerto.api.infrastructure.adapters.in.web.dto.UpdateCustomerRequest;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
@@ -38,11 +40,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @WebMvcTest(
         value = CustomerController.class,
@@ -59,6 +59,7 @@ class CustomerControllerTest {
     @MockBean ListCustomersUseCase listCustomersUseCase;
     @MockBean SecurityContext securityContext;
     @MockBean CreateCustomerUseCase createCustomerUseCase;
+    @MockBean DeleteCustomerUseCase deleteCustomerUseCase;
 
     private final UUID currentUserId = UUID.randomUUID();
     private Customer buildCustomer(UUID id) {
@@ -240,6 +241,36 @@ class CustomerControllerTest {
                     "password": "secret1234"
                 }
             """))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void should_return_204_when_customer_is_deleted() throws Exception {
+        UUID customerId = UUID.randomUUID();
+
+        doNothing().when(deleteCustomerUseCase).execute(customerId);
+
+        mockMvc.perform(delete("/api/v1/customers/{id}", customerId))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void should_return_404_when_customer_not_found_on_delete() throws Exception {
+        UUID customerId = UUID.randomUUID();
+
+        doThrow(new CustomerNotFoundException(customerId))
+                .when(deleteCustomerUseCase).execute(customerId);
+
+        mockMvc.perform(delete("/api/v1/customers/{id}", customerId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void should_return_403_when_not_admin_on_delete() throws Exception {
+        mockMvc.perform(delete("/api/v1/customers/{id}", UUID.randomUUID()))
                 .andExpect(status().isForbidden());
     }
 }

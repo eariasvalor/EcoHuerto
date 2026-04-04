@@ -13,4 +13,5 @@ public interface CustomerRepository {
     Optional<Customer> findByEmail(String email);
     boolean existsByEmail(String email);
     Page<Customer> findAll(Pageable pageable);
+    void deleteById(UUID customerId);
 }

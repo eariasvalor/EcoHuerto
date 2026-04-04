@@ -2,7 +2,9 @@ package com.huerto.api.infrastructure.config;
 
 import com.huerto.api.domain.exception.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -85,6 +87,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public Map<String, Object> handleDuplicateVariety(DuplicateVarietyException ex) {
         return errorBody(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(CustomerNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, Object> handleNotFound(CustomerNotFoundException ex) {
+        return errorBody(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
 }

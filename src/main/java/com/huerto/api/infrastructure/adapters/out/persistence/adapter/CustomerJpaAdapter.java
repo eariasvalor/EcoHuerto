@@ -47,4 +47,9 @@ public class CustomerJpaAdapter implements CustomerRepository {
     public Page<Customer> findAll(Pageable pageable) {
         return jpaRepository.findAll(pageable).map(mapper::toDomain);
     }
+
+    @Override
+    public void deleteById(UUID customerId) {
+        jpaRepository.deleteById(customerId);
+    }
 }
