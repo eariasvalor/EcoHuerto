@@ -7,7 +7,9 @@ import com.huerto.api.domain.model.Customer;
 import com.huerto.api.domain.ports.out.CustomerRepository;
 import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
+import com.huerto.api.domain.valueobject.PhoneNumber;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,10 +34,14 @@ public class CreateCustomerUseCaseImpl implements CreateCustomerUseCase {
                 passwordEncoder.encode(command.rawPassword())
         );
 
+        PhoneNumber phoneNumber = new PhoneNumber(command.phoneCountryCode(), command.phoneNumber());
+
         Customer customer = new Customer(
                 UUID.randomUUID(),
                 command.name(),
                 credentials,
+                phoneNumber,
+                null,
                 LocalDateTime.now(),
                 0
         );

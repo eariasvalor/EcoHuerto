@@ -43,7 +43,9 @@ public class AuthController {
         RegisterCustomerCommand command = new RegisterCustomerCommand(
                 request.name(),
                 request.email(),
-                request.rawPassword()
+                request.rawPassword(),
+                request.phoneCountryCode(),
+                request.phoneNumber()
         );
         return CustomerResponse.from(registerCustomerUseCase.execute(command));
     }

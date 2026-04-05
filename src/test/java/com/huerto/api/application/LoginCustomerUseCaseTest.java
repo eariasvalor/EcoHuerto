@@ -9,6 +9,7 @@ import com.huerto.api.domain.ports.out.PasswordHasher;
 import com.huerto.api.domain.ports.out.TokenProvider;
 import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
+import com.huerto.api.util.CustomerTestFactory;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,17 +32,11 @@ class LoginCustomerUseCaseTest {
     @Mock TokenProvider tokenProvider;
     @InjectMocks LoginCustomerUseCaseImpl loginCustomerUseCase;
 
-    private Customer buildCustomer(UUID id) {
-        Credentials credentials = new Credentials(
-                new Email("john@huerto.com"), "hashed_password"
-        );
-        return new Customer(id, "John Doe", credentials, LocalDateTime.now(), 0);
-    }
 
     @Test
     void should_return_token_when_credentials_are_valid() {
         UUID id = UUID.randomUUID();
-        Customer customer = buildCustomer(id);
+        Customer customer = CustomerTestFactory.buildCustomer(id);
         LoginCommand command = new LoginCommand("john@huerto.com", "secret1234");
 
         when(customerRepository.findByEmail("john@huerto.com"))
@@ -71,7 +66,7 @@ class LoginCustomerUseCaseTest {
     @Test
     void should_throw_when_password_is_wrong() {
         UUID id = UUID.randomUUID();
-        Customer customer = buildCustomer(id);
+        Customer customer = CustomerTestFactory.buildCustomer(id);
         LoginCommand command = new LoginCommand("john@huerto.com", "wrongpassword");
 
         when(customerRepository.findByEmail("john@huerto.com"))

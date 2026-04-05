@@ -5,6 +5,7 @@ import com.huerto.api.domain.model.Customer;
 import com.huerto.api.domain.ports.out.CustomerRepository;
 import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
+import com.huerto.api.util.CustomerTestFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -19,7 +20,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-class DeleteCustomerUseCaseImplTest {
+class DeleteCustomerUseCaseTest {
 
     @Mock
     CustomerRepository customerRepository;
@@ -33,13 +34,7 @@ class DeleteCustomerUseCaseImplTest {
     @Test
     void should_delete_customer_successfully() {
         UUID customerId = UUID.randomUUID();
-        Customer customer = new Customer(
-                customerId,
-                "Carlos García",
-                new Credentials(new Email("carlos@huerto.com"), "hashed"),
-                LocalDateTime.now(),
-                0
-        );
+        Customer customer = CustomerTestFactory.buildCustomer(customerId);
 
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
         doNothing().when(customerRepository).deleteById(customerId);

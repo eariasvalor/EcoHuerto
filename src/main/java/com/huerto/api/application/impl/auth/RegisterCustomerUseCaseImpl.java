@@ -9,6 +9,7 @@ import com.huerto.api.domain.ports.out.CustomerRepository;
 import com.huerto.api.domain.ports.out.PasswordHasher;
 import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
+import com.huerto.api.domain.valueobject.PhoneNumber;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,15 +35,18 @@ public class RegisterCustomerUseCaseImpl implements RegisterCustomerUseCase {
 
         Email email = new Email(command.email());
         Credentials credentials = Credentials.create(email, command.rawPassword(), passwordHasher);
+        PhoneNumber phoneNumber = new PhoneNumber(command.phoneCountryCode(), command.phoneNumber());
 
         Customer customer = new Customer(
                 Generators.timeBasedEpochGenerator().generate(),
                 command.name(),
                 credentials,
+                phoneNumber,
+                null,
                 LocalDateTime.now(),
                 0
         );
-
         return customerRepository.save(customer);
+
     }
 }

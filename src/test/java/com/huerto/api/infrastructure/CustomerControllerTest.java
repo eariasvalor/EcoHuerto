@@ -12,30 +12,25 @@ import com.huerto.api.domain.exception.DuplicateEmailException;
 import com.huerto.api.infrastructure.adapters.in.web.dto.UpdateCustomerRequest;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Customer;
-import com.huerto.api.domain.valueobject.Credentials;
-import com.huerto.api.domain.valueobject.Email;
 import com.huerto.api.infrastructure.adapters.in.web.CustomerController;
 import com.huerto.api.infrastructure.config.SecurityConfig;
 import com.huerto.api.infrastructure.config.SecurityContext;
+import com.huerto.api.util.CustomerTestFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,12 +57,7 @@ class CustomerControllerTest {
     @MockBean DeleteCustomerUseCase deleteCustomerUseCase;
 
     private final UUID currentUserId = UUID.randomUUID();
-    private Customer buildCustomer(UUID id) {
-        Credentials credentials = new Credentials(
-                new Email("john@huerto.com"), "hashed_password"
-        );
-        return new Customer(id, "John Doe", credentials, LocalDateTime.now(), 0);
-    }
+
     @BeforeEach
     void setUp() {
         when(securityContext.getCurrentUserId()).thenReturn(currentUserId);
@@ -78,7 +68,7 @@ class CustomerControllerTest {
     @WithMockUser(roles = "ADMIN")
     void should_return_200_when_customer_exists() throws Exception {
         UUID id = UUID.randomUUID();
-        Customer customer = buildCustomer(id);
+        Customer customer = CustomerTestFactory.buildCustomer(id);
 
         when(findCustomerUseCase.execute(id)).thenReturn(customer);
 
@@ -107,12 +97,10 @@ class CustomerControllerTest {
     @WithMockUser(roles = "ADMIN")
     void should_return_200_when_customer_is_updated() throws Exception {
         UUID id = UUID.randomUUID();
-        Credentials credentials = new Credentials(
-                new Email("john@huerto.com"), "hashed_password"
-        );
-        Customer updated = new Customer(id, "John Updated", credentials, LocalDateTime.now(), 1);
 
-        UpdateCustomerRequest request = new UpdateCustomerRequest("John Updated", null);
+        Customer updated = CustomerTestFactory.buildCustomer(id, "John Updated");
+
+        UpdateCustomerRequest request = CustomerTestFactory.buildUpdateRequest("John Updated", null);
 
         when(updateCustomerUseCase.execute(any())).thenReturn(updated);
 
@@ -128,7 +116,7 @@ class CustomerControllerTest {
     @WithMockUser(roles = "ADMIN")
     void should_return_404_when_customer_not_found_on_update() throws Exception {
         UUID id = UUID.randomUUID();
-        UpdateCustomerRequest request = new UpdateCustomerRequest("John Updated", null);
+        UpdateCustomerRequest request = CustomerTestFactory.buildUpdateRequest("John Updated", null);
 
         when(updateCustomerUseCase.execute(any()))
                 .thenThrow(new ResourceNotFoundException("Customer", id));
@@ -143,7 +131,7 @@ class CustomerControllerTest {
     @WithMockUser(roles = "ADMIN")
     void should_return_400_when_name_is_blank_on_update() throws Exception {
         UUID id = UUID.randomUUID();
-        UpdateCustomerRequest request = new UpdateCustomerRequest("", null);
+        UpdateCustomerRequest request = CustomerTestFactory.buildUpdateRequest("", null);
 
         mockMvc.perform(put("/api/v1/customers/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -155,7 +143,7 @@ class CustomerControllerTest {
     @WithMockUser(roles = "ADMIN")
     void should_return_200_with_paginated_customers() throws Exception {
         UUID id = UUID.randomUUID();
-        Customer customer = buildCustomer(id);
+        Customer customer = CustomerTestFactory.buildCustomer(id);
         Page<Customer> page = new PageImpl<>(
                 List.of(customer), PageRequest.of(0, 10), 1
         );
@@ -189,20 +177,21 @@ class CustomerControllerTest {
     @WithMockUser(roles = "ADMIN")
     void should_return_201_with_created_customer() throws Exception {
         UUID customerId = UUID.randomUUID();
-        Customer customer = new Customer(customerId, "Carlos García", new Credentials(new Email("carlos@huerto.com"), "hashed"),
-                LocalDateTime.now(), 0);
+        Customer customer = CustomerTestFactory.buildCustomer(customerId, "Carlos García", "carlos@huerto.com");
 
         when(createCustomerUseCase.execute(any(CreateCustomerCommand.class))).thenReturn(customer);
 
         mockMvc.perform(post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                {
-                    "name": "Carlos García",
-                    "email": "carlos@huerto.com",
-                    "password": "secret1234"
-                }
-            """))
+    {
+        "name": "Carlos García",
+        "email": "carlos@huerto.com",
+        "password": "secret1234",
+        "phoneCountryCode": "+34",
+        "phoneNumber": "600123456"
+    }
+"""))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(customerId.toString()))
                 .andExpect(jsonPath("$.name").value("Carlos García"))
@@ -218,12 +207,14 @@ class CustomerControllerTest {
         mockMvc.perform(post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                {
-                    "name": "Carlos García",
-                    "email": "carlos@huerto.com",
-                    "password": "secret1234"
-                }
-            """))
+    {
+        "name": "Carlos García",
+        "email": "carlos@huerto.com",
+        "password": "secret1234",
+        "phoneCountryCode": "+34",
+        "phoneNumber": "600123456"
+    }
+"""))
                 .andExpect(status().isConflict());
     }
 
@@ -235,12 +226,14 @@ class CustomerControllerTest {
         mockMvc.perform(post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                {
-                    "name": "Carlos García",
-                    "email": "carlos@huerto.com",
-                    "password": "secret1234"
-                }
-            """))
+    {
+        "name": "Carlos García",
+        "email": "carlos@huerto.com",
+        "password": "secret1234",
+        "phoneCountryCode": "+34",
+        "phoneNumber": "600123456"
+    }
+""")    )
                 .andExpect(status().isForbidden());
     }
 

@@ -7,13 +7,12 @@ import com.huerto.api.application.usecase.auth.LoginAdminUseCase;
 import com.huerto.api.domain.exception.DuplicateEmailException;
 import com.huerto.api.domain.exception.InactiveAdminException;
 import com.huerto.api.domain.exception.InvalidCredentialsException;
-import com.huerto.api.domain.valueobject.Credentials;
-import com.huerto.api.domain.valueobject.Email;
 import com.huerto.api.domain.model.Customer;
 import com.huerto.api.infrastructure.adapters.in.web.AuthController;
 import com.huerto.api.infrastructure.adapters.in.web.dto.LoginRequest;
 import com.huerto.api.infrastructure.adapters.in.web.dto.RegisterCustomerRequest;
 import com.huerto.api.infrastructure.config.SecurityConfig;
+import com.huerto.api.util.CustomerTestFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -24,7 +23,6 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -52,16 +50,11 @@ class AuthControllerTest {
     @Test
     void should_return_201_when_customer_is_registered() throws Exception {
         UUID id = UUID.randomUUID();
-        RegisterCustomerRequest request = new RegisterCustomerRequest(
+        RegisterCustomerRequest request = CustomerTestFactory.buildRegisterRequest(
                 "John Doe", "john@huerto.com", "secret1234"
         );
 
-        Credentials credentials = new Credentials(
-                new Email("john@huerto.com"), "hashed_password"
-        );
-        Customer created = new Customer(
-                id, "John Doe", credentials, LocalDateTime.now(), 0
-        );
+        Customer created = CustomerTestFactory.buildCustomer(id);
 
         when(registerCustomerUseCase.execute(any())).thenReturn(created);
 
@@ -76,7 +69,7 @@ class AuthControllerTest {
 
     @Test
     void should_return_400_when_name_is_blank() throws Exception {
-        RegisterCustomerRequest request = new RegisterCustomerRequest(
+        RegisterCustomerRequest request = CustomerTestFactory.buildRegisterRequest(
                 "", "john@huerto.com", "secret1234"
         );
 
@@ -88,7 +81,7 @@ class AuthControllerTest {
 
     @Test
     void should_return_400_when_email_is_invalid() throws Exception {
-        RegisterCustomerRequest request = new RegisterCustomerRequest(
+        RegisterCustomerRequest request = CustomerTestFactory.buildRegisterRequest(
                 "John Doe", "not-an-email", "secret1234"
         );
 
@@ -100,7 +93,7 @@ class AuthControllerTest {
 
     @Test
     void should_return_400_when_password_too_short() throws Exception {
-        RegisterCustomerRequest request = new RegisterCustomerRequest(
+        RegisterCustomerRequest request = CustomerTestFactory.buildRegisterRequest(
                 "John Doe", "john@huerto.com", "short"
         );
 
@@ -112,7 +105,7 @@ class AuthControllerTest {
 
     @Test
     void should_return_409_when_email_already_exists() throws Exception {
-        RegisterCustomerRequest request = new RegisterCustomerRequest(
+        RegisterCustomerRequest request = CustomerTestFactory.buildRegisterRequest(
                 "John Doe", "john@huerto.com", "secret1234"
         );
 

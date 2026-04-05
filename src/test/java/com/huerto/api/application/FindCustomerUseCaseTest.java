@@ -6,6 +6,7 @@ import com.huerto.api.domain.model.Customer;
 import com.huerto.api.domain.ports.out.CustomerRepository;
 import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
+import com.huerto.api.util.CustomerTestFactory;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,17 +27,11 @@ class FindCustomerUseCaseTest {
     @Mock CustomerRepository customerRepository;
     @InjectMocks FindCustomerUseCaseImpl findCustomerUseCase;
 
-    private Customer buildCustomer(UUID id) {
-        Credentials credentials = new Credentials(
-                new Email("john@huerto.com"), "hashed_password"
-        );
-        return new Customer(id, "John Doe", credentials, LocalDateTime.now(), 0);
-    }
 
     @Test
     void should_return_customer_when_found() {
         UUID id = UUID.randomUUID();
-        Customer customer = buildCustomer(id);
+        Customer customer = CustomerTestFactory.buildCustomer(id);
 
         when(customerRepository.findById(id)).thenReturn(Optional.of(customer));
 
