@@ -8,6 +8,7 @@ import com.huerto.api.domain.ports.out.CustomerRepository;
 import com.huerto.api.domain.ports.out.PasswordHasher;
 import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
+import com.huerto.api.util.CustomerTestFactory;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,18 +31,12 @@ class UpdateCustomerUseCaseTest {
     @Mock PasswordHasher passwordHasher;
     @InjectMocks UpdateCustomerUseCaseImpl updateCustomerUseCase;
 
-    private Customer buildCustomer(UUID id) {
-        Credentials credentials = new Credentials(
-                new Email("john@huerto.com"), "hashed_password"
-        );
-        return new Customer(id, "John Doe", credentials, LocalDateTime.now(), 0);
-    }
 
     @Test
     void should_update_name_only_when_password_is_null() {
         UUID id = UUID.randomUUID();
-        Customer customer = buildCustomer(id);
-        UpdateCustomerCommand command = new UpdateCustomerCommand(id, "John Updated", null);
+        Customer customer = CustomerTestFactory.buildCustomer(id);
+        UpdateCustomerCommand command = CustomerTestFactory.buildUpdateCommand(id,  null);
 
         when(customerRepository.findById(id)).thenReturn(Optional.of(customer));
         when(customerRepository.save(any())).thenAnswer(i -> i.getArgument(0));
@@ -56,8 +51,8 @@ class UpdateCustomerUseCaseTest {
     @Test
     void should_update_name_and_password_when_password_provided() {
         UUID id = UUID.randomUUID();
-        Customer customer = buildCustomer(id);
-        UpdateCustomerCommand command = new UpdateCustomerCommand(id, "John Updated", "newpassword");
+        Customer customer = CustomerTestFactory.buildCustomer(id);
+        UpdateCustomerCommand command = CustomerTestFactory.buildUpdateCommand(id, "newpassword");
 
         when(customerRepository.findById(id)).thenReturn(Optional.of(customer));
         when(passwordHasher.hash("newpassword")).thenReturn("new_hashed_password");
@@ -73,7 +68,7 @@ class UpdateCustomerUseCaseTest {
     @Test
     void should_throw_when_customer_not_found() {
         UUID id = UUID.randomUUID();
-        UpdateCustomerCommand command = new UpdateCustomerCommand(id, "John Updated", null);
+        UpdateCustomerCommand command = CustomerTestFactory.buildUpdateCommand(id);
 
         when(customerRepository.findById(id)).thenReturn(Optional.empty());
 

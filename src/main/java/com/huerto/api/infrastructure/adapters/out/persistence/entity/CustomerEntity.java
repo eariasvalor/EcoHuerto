@@ -24,6 +24,12 @@ public class CustomerEntity {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Embedded
+    private PhoneNumberEmbeddable phone;
+
+    @Embedded
+    private PostalAddressEmbeddable address;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

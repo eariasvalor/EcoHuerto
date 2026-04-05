@@ -6,6 +6,7 @@ import com.huerto.api.domain.exception.DuplicateEmailException;
 import com.huerto.api.domain.model.Customer;
 import com.huerto.api.domain.ports.out.CustomerRepository;
 import com.huerto.api.domain.ports.out.PasswordHasher;
+import com.huerto.api.util.CustomerTestFactory;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,9 +27,7 @@ class RegisterCustomerUseCaseTest {
 
     @Test
     void should_register_customer_when_email_is_new() {
-        RegisterCustomerCommand command = new RegisterCustomerCommand(
-                "John Doe", "john@huerto.com", "secret1234"
-        );
+        RegisterCustomerCommand command = CustomerTestFactory.buildRegisterCommand();
 
         when(customerRepository.existsByEmail("john@huerto.com")).thenReturn(false);
         when(passwordHasher.hash(any())).thenReturn("hashed_password");
@@ -44,9 +43,7 @@ class RegisterCustomerUseCaseTest {
 
     @Test
     void should_throw_when_email_already_exists() {
-        RegisterCustomerCommand command = new RegisterCustomerCommand(
-                "John Doe", "john@huerto.com", "secret1234"
-        );
+        RegisterCustomerCommand command = CustomerTestFactory.buildRegisterCommand();
 
         when(customerRepository.existsByEmail("john@huerto.com")).thenReturn(true);
 

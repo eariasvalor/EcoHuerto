@@ -14,6 +14,7 @@ import com.huerto.api.domain.ports.out.ProductRepository;
 import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
 import com.huerto.api.domain.valueobject.Price;
+import com.huerto.api.util.CustomerTestFactory;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,10 +39,6 @@ class CreateOrderUseCaseTest {
     @Mock CustomerRepository customerRepository;
     @InjectMocks CreateOrderUseCaseImpl createOrderUseCase;
 
-    private Customer buildCustomer(UUID id) {
-        return new Customer(id, "John", new Credentials(
-                new Email("john@huerto.com"), "hash"), LocalDateTime.now(), 0);
-    }
 
     private Product buildProduct(UUID id, int stock) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
@@ -61,7 +58,7 @@ class CreateOrderUseCaseTest {
     void should_create_order_without_duplicate_flag_when_no_similar_pending_order() {
         UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
-        Customer customer = buildCustomer(customerId);
+        Customer customer = CustomerTestFactory.buildCustomer(customerId);
         Product product = buildProduct(productId, 100);
 
         CreateOrderCommand command = new CreateOrderCommand(
@@ -84,7 +81,7 @@ class CreateOrderUseCaseTest {
     void should_create_order_with_duplicate_flag_when_similar_pending_order_exists() {
         UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
-        Customer customer = buildCustomer(customerId);
+        Customer customer = CustomerTestFactory.buildCustomer(customerId);
         Product product = buildProduct(productId, 100);
         Order existingOrder = buildOrder(customerId, productId);
 
@@ -124,7 +121,7 @@ class CreateOrderUseCaseTest {
     void should_throw_when_product_not_found() {
         UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
-        Customer customer = buildCustomer(customerId);
+        Customer customer = CustomerTestFactory.buildCustomer(customerId);
 
         CreateOrderCommand command = new CreateOrderCommand(
                 customerId, List.of(new CreateOrderCommand.OrderLineCommand(productId, 2))
@@ -143,7 +140,7 @@ class CreateOrderUseCaseTest {
     void should_throw_when_stock_is_insufficient() {
         UUID customerId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
-        Customer customer = buildCustomer(customerId);
+        Customer customer = CustomerTestFactory.buildCustomer(customerId);
         Product product = buildProduct(productId, 1);
 
         CreateOrderCommand command = new CreateOrderCommand(

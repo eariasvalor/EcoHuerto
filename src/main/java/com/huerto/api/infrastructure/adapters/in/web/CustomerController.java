@@ -64,10 +64,10 @@ public class CustomerController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update customer name or password")
-            @ApiResponse(responseCode = "200", description = "Customer updated")
-            @ApiResponse(responseCode = "403", description = "Cannot update another customer's profile")
-            @ApiResponse(responseCode = "400", description = "Invalid request body")
-            @ApiResponse(responseCode = "404", description = "Customer not found")
+    @ApiResponse(responseCode = "200", description = "Customer updated")
+    @ApiResponse(responseCode = "403", description = "Cannot update another customer's profile")
+    @ApiResponse(responseCode = "400", description = "Invalid request body")
+    @ApiResponse(responseCode = "404", description = "Customer not found")
     public CustomerResponse update(
             @Parameter(description = "Customer UUID") @PathVariable UUID id,
             @Valid @RequestBody UpdateCustomerRequest request) {
@@ -80,7 +80,18 @@ public class CustomerController {
                     "You can only update your own profile");
 
         UpdateCustomerCommand command = new UpdateCustomerCommand(
-                id, request.name(), request.rawPassword()
+                id,
+                request.name(),
+                request.rawPassword(),
+                request.phoneCountryCode(),
+                request.phoneNumber(),
+                request.addressStreetType(),
+                request.addressStreet(),
+                request.addressNumber(),
+                request.addressFloor(),
+                request.addressCity(),
+                request.addressPostalCode(),
+                request.addressProvince()
         );
         return CustomerResponse.from(updateCustomerUseCase.execute(command));
     }
@@ -98,7 +109,9 @@ public class CustomerController {
         CreateCustomerCommand command = new CreateCustomerCommand(
                 request.name(),
                 request.email(),
-                request.password()
+                request.password(),
+                request.phoneCountryCode(),
+                request.phoneNumber()
         );
         Customer customer = createCustomerUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(CustomerResponse.from(customer));

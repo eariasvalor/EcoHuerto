@@ -5,6 +5,7 @@ import com.huerto.api.domain.model.Customer;
 import com.huerto.api.domain.ports.out.CustomerRepository;
 import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
+import com.huerto.api.util.CustomerTestFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,17 +29,11 @@ class ListCustomersUseCaseTest {
     @Mock CustomerRepository customerRepository;
     @InjectMocks ListCustomersUseCaseImpl listCustomersUseCase;
 
-    private Customer buildCustomer() {
-        Credentials credentials = new Credentials(
-                new Email("john@huerto.com"), "hashed_password"
-        );
-        return new Customer(UUID.randomUUID(), "John Doe", credentials, LocalDateTime.now(), 0);
-    }
-
     @Test
     void should_return_paginated_customers() {
         Pageable pageable = PageRequest.of(0, 10);
-        Customer customer = buildCustomer();
+        UUID id = UUID.randomUUID();
+        Customer customer = CustomerTestFactory.buildCustomer(id);
         Page<Customer> page = new PageImpl<>(List.of(customer), pageable, 1);
 
         when(customerRepository.findAll(pageable)).thenReturn(page);

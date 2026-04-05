@@ -5,6 +5,7 @@ import com.huerto.api.application.impl.customer.CreateCustomerUseCaseImpl;
 import com.huerto.api.domain.exception.DuplicateEmailException;
 import com.huerto.api.domain.model.Customer;
 import com.huerto.api.domain.ports.out.CustomerRepository;
+import com.huerto.api.util.CustomerTestFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -32,28 +33,24 @@ class CreateCustomerUseCaseTest {
 
     @Test
     void should_create_customer_successfully() {
-        CreateCustomerCommand command = new CreateCustomerCommand(
-                "Carlos García", "carlos@huerto.com", "secret1234"
-        );
+        CreateCustomerCommand command = CustomerTestFactory.buildCreateCommand();
 
-        when(customerRepository.existsByEmail("carlos@huerto.com")).thenReturn(false);
+        when(customerRepository.existsByEmail("john@huerto.com")).thenReturn(false);
         when(passwordEncoder.encode("secret1234")).thenReturn("hashed");
         when(customerRepository.save(any(Customer.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Customer result = useCase.execute(command);
 
-        assertThat(result.credentials().email().value()).isEqualTo("carlos@huerto.com");
-        assertThat(result.name()).isEqualTo("Carlos García");
+        assertThat(result.credentials().email().value()).isEqualTo("john@huerto.com");
+        assertThat(result.name()).isEqualTo("John Doe");
         verify(customerRepository).save(any(Customer.class));
     }
 
     @Test
     void should_throw_when_email_already_exists() {
-        CreateCustomerCommand command = new CreateCustomerCommand(
-                "Carlos García", "carlos@huerto.com", "secret1234"
-        );
+        CreateCustomerCommand command = CustomerTestFactory.buildCreateCommand();
 
-        when(customerRepository.existsByEmail("carlos@huerto.com")).thenReturn(true);
+        when(customerRepository.existsByEmail("john@huerto.com")).thenReturn(true);
 
         assertThatThrownBy(() -> useCase.execute(command))
                 .isInstanceOf(DuplicateEmailException.class);

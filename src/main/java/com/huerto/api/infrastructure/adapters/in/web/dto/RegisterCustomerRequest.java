@@ -14,5 +14,11 @@ public record RegisterCustomerRequest(
 
         @NotBlank(message = "Password must not be blank")
         @Size(min = 8, message = "Password must be at least 8 characters")
-        String rawPassword
+        String rawPassword,
+
+        @NotBlank(message = "Phone country code must not be blank")
+        String phoneCountryCode,
+
+        @NotBlank(message = "Phone number must not be blank")
+        String phoneNumber
 ) {}
