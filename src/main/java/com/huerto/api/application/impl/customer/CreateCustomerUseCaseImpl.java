@@ -8,8 +8,8 @@ import com.huerto.api.domain.ports.out.CustomerRepository;
 import com.huerto.api.domain.valueobject.Credentials;
 import com.huerto.api.domain.valueobject.Email;
 import com.huerto.api.domain.valueobject.PhoneNumber;
+import com.huerto.api.domain.valueobject.PostalAddress;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -36,12 +36,25 @@ public class CreateCustomerUseCaseImpl implements CreateCustomerUseCase {
 
         PhoneNumber phoneNumber = new PhoneNumber(command.phoneCountryCode(), command.phoneNumber());
 
+        PostalAddress address = null;
+        if (command.addressCity() != null && !command.addressCity().isBlank()) {
+            address = new PostalAddress(
+                    command.addressStreetType(),
+                    command.addressStreet(),
+                    command.addressNumber(),
+                    command.addressFloor(),
+                    command.addressCity(),
+                    command.addressPostalCode(),
+                    command.addressProvince()
+            );
+        }
+
         Customer customer = new Customer(
                 UUID.randomUUID(),
                 command.name(),
                 credentials,
                 phoneNumber,
-                null,
+                address,
                 LocalDateTime.now(),
                 0
         );

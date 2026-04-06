@@ -77,7 +77,14 @@ public class CustomerTestFactory {
                 "john@huerto.com",
                 "secret1234",
                 "+34",
-                "600123456"
+                "600123456",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
         );
     }
 

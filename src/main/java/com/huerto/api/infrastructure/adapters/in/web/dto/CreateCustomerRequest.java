@@ -9,5 +9,12 @@ public record CreateCustomerRequest(
         @NotBlank @Email String email,
         @NotBlank @Size(min = 8) String password,
         @NotBlank String phoneCountryCode,
-        @NotBlank String phoneNumber
+        @NotBlank String phoneNumber,
+        String addressStreetType,
+        String addressStreet,
+        String addressNumber,
+        String addressFloor,
+        String addressCity,
+        String addressPostalCode,
+        String addressProvince
 ) {}

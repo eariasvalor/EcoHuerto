@@ -111,7 +111,14 @@ public class CustomerController {
                 request.email(),
                 request.password(),
                 request.phoneCountryCode(),
-                request.phoneNumber()
+                request.phoneNumber(),
+                request.addressStreetType(),
+                request.addressStreet(),
+                request.addressNumber(),
+                request.addressFloor(),
+                request.addressCity(),
+                request.addressPostalCode(),
+                request.addressProvince()
         );
         Customer customer = createCustomerUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(CustomerResponse.from(customer));

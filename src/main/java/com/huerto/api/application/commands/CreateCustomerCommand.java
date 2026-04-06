@@ -5,5 +5,12 @@ public record CreateCustomerCommand(
         String email,
         String rawPassword,
         String phoneCountryCode,
-        String phoneNumber
+        String phoneNumber,
+        String addressStreetType,
+        String addressStreet,
+        String addressNumber,
+        String addressFloor,
+        String addressCity,
+        String addressPostalCode,
+        String addressProvince
 ) {}
