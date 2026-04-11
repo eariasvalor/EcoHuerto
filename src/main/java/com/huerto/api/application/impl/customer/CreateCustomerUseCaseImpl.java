@@ -37,7 +37,12 @@ public class CreateCustomerUseCaseImpl implements CreateCustomerUseCase {
         PhoneNumber phoneNumber = new PhoneNumber(command.phoneCountryCode(), command.phoneNumber());
 
         PostalAddress address = null;
-        if (command.addressCity() != null && !command.addressCity().isBlank()) {
+        if (command.addressCity() != null && !command.addressCity().isBlank()
+                && command.addressStreetType() != null && !command.addressStreetType().isBlank()
+                && command.addressStreet() != null && !command.addressStreet().isBlank()
+                && command.addressNumber() != null && !command.addressNumber().isBlank()
+                && command.addressPostalCode() != null && !command.addressPostalCode().isBlank()
+                && command.addressProvince() != null && !command.addressProvince().isBlank()) {
             address = new PostalAddress(
                     command.addressStreetType(),
                     command.addressStreet(),

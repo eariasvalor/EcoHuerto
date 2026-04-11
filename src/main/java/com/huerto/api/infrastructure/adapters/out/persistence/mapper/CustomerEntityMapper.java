@@ -22,10 +22,12 @@ public class CustomerEntityMapper {
         entity.setCreatedAt(customer.createdAt());
         entity.setVersion(customer.version());
 
-        PhoneNumberEmbeddable phone = new PhoneNumberEmbeddable();
-        phone.setCountryCode(customer.phone().countryCode());
-        phone.setNumber(customer.phone().number());
-        entity.setPhone(phone);
+        if (customer.phone() != null) {
+            PhoneNumberEmbeddable phone = new PhoneNumberEmbeddable();
+            phone.setCountryCode(customer.phone().countryCode());
+            phone.setNumber(customer.phone().number());
+            entity.setPhone(phone);
+        }
 
         if (customer.address() != null) {
             PostalAddressEmbeddable address = new PostalAddressEmbeddable();
@@ -48,10 +50,13 @@ public class CustomerEntityMapper {
                 entity.getPasswordHash()
         );
 
-        PhoneNumber phone = new PhoneNumber(
-                entity.getPhone().getCountryCode(),
-                entity.getPhone().getNumber()
-        );
+        PhoneNumber phone = null;
+        if (entity.getPhone() != null) {
+            phone = new PhoneNumber(
+                    entity.getPhone().getCountryCode(),
+                    entity.getPhone().getNumber()
+            );
+        }
 
         PostalAddress address = null;
         if (entity.getAddress() != null && entity.getAddress().getCity() != null) {
