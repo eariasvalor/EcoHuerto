@@ -51,7 +51,11 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public CustomerResponse findById(@PathVariable UUID id) {
+    @Operation(summary = "Find a customer by ID")
+    @ApiResponse(responseCode = "200", description = "Customer found")
+    @ApiResponse(responseCode = "403", description = "Cannot access another customer's profile")
+    @ApiResponse(responseCode = "404", description = "Customer not found")
+    public CustomerResponse findById(@Parameter(description = "Customer UUID") @PathVariable UUID id) {
         UUID requesterId = securityContext.getCurrentUserId();
         boolean isAdmin  = securityContext.isAdmin();
 
@@ -105,6 +109,10 @@ public class CustomerController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create a new customer (admin only)")
+    @ApiResponse(responseCode = "201", description = "Customer created")
+    @ApiResponse(responseCode = "400", description = "Invalid request body")
+    @ApiResponse(responseCode = "409", description = "Email already in use")
     public ResponseEntity<CustomerResponse> create(@RequestBody @Valid CreateCustomerRequest request) {
         CreateCustomerCommand command = new CreateCustomerCommand(
                 request.name(),
@@ -126,7 +134,10 @@ public class CustomerController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    @Operation(summary = "Delete a customer (admin only)")
+    @ApiResponse(responseCode = "204", description = "Customer deleted")
+    @ApiResponse(responseCode = "404", description = "Customer not found")
+    public ResponseEntity<Void> delete(@Parameter(description = "Customer UUID") @PathVariable UUID id) {
         deleteCustomerUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }
