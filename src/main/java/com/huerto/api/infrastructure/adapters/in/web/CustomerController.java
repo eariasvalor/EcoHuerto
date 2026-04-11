@@ -101,6 +101,7 @@ public class CustomerController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "List all customers")
     @ApiResponse(responseCode = "200", description = "Paginated customer list")
     public Page<CustomerResponse> list(Pageable pageable) {
