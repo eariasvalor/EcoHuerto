@@ -38,6 +38,7 @@ public class UpdateProductUseCaseImpl implements UpdateProductUseCase {
                 command.unit(),
                 existing.stock(),
                 existing.available(),
+                existing.imageUrl(),
                 existing.version()
         );
 

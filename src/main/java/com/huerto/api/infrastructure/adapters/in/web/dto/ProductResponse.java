@@ -14,7 +14,8 @@ public record ProductResponse(
         String currency,
         Unit unit,
         int stock,
-        boolean available
+        boolean available,
+        String imageUrl
 ) {
     public static ProductResponse from(Product product) {
         return new ProductResponse(
@@ -26,7 +27,8 @@ public record ProductResponse(
                 product.price().currency(),
                 product.unit(),
                 product.stock(),
-                product.available()
+                product.available(),
+                product.imageUrl()
         );
     }
 }

@@ -33,7 +33,7 @@ class CreateProductUseCaseTest {
     @Test
     void should_create_product_when_variety_exists() {
         UUID varietyId = UUID.randomUUID();
-        Variety variety = new Variety(varietyId, "Raf", "Tomato");
+        Variety variety = new Variety(varietyId, "Raf", "Tomato", null);
         CreateProductCommand command = new CreateProductCommand(
                 "Tomato", varietyId, new BigDecimal("2.50"), Unit.KG, 100
         );

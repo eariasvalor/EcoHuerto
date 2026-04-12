@@ -19,4 +19,7 @@ public class VarietyEntity {
 
     @Column(name = "product_category", nullable = false)
     private String productCategory;
+
+    @Column(name = "image_url")
+    private String imageUrl;
 }

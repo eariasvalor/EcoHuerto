@@ -30,9 +30,9 @@ class ListMyOrdersUseCaseTest {
     @InjectMocks ListMyOrdersUseCaseImpl listMyOrdersUseCase;
 
     private Order buildOrder(UUID customerId) {
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Product product = new Product(UUID.randomUUID(), "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0);
+                Price.of("2.50"), Unit.KG, 100, true, null, 0);
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(UUID.randomUUID(), "HUE-0001", customerId, "",
                 List.of(line), OrderStatus.PENDING, LocalDateTime.now(), 0);

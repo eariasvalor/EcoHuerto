@@ -31,10 +31,10 @@ class ListAvailableProductsUseCaseTest {
 
     @Test
     void should_return_only_available_products() {
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Product available = new Product(
                 UUID.randomUUID(), "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0
+                Price.of("2.50"), Unit.KG, 100, true, null, 0
         );
 
         Pageable pageable = PageRequest.of(0, 10);

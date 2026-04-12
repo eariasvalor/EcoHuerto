@@ -20,6 +20,7 @@ public class ProductEntityMapper {
         entity.setUnit(product.unit());
         entity.setStock(product.stock());
         entity.setAvailable(product.available());
+        entity.setImageUrl(product.imageUrl());
         entity.setVersion(product.version());
         return entity;
     }
@@ -28,7 +29,8 @@ public class ProductEntityMapper {
         Variety variety = new Variety(
                 entity.getVariety().getId(),
                 entity.getVariety().getName(),
-                entity.getVariety().getProductCategory()
+                entity.getVariety().getProductCategory(),
+                entity.getVariety().getImageUrl()
         );
         return new Product(
                 entity.getId(),
@@ -38,6 +40,7 @@ public class ProductEntityMapper {
                 entity.getUnit(),
                 entity.getStock(),
                 entity.isAvailable(),
+                entity.getImageUrl(),
                 entity.getVersion()
         );
     }
@@ -47,6 +50,7 @@ public class ProductEntityMapper {
         entity.setId(variety.id());
         entity.setName(variety.name());
         entity.setProductCategory(variety.productCategory());
+        entity.setImageUrl(variety.imageUrl());
         return entity;
     }
 }

@@ -36,6 +36,7 @@ public class CreateProductUseCaseImpl implements CreateProductUseCase {
                 command.unit(),
                 command.stock(),
                 true,
+                null,
                 0
         );
 

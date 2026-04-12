@@ -1,16 +1,7 @@
 package com.huerto.api.infrastructure;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huerto.api.application.usecase.product.CreateProductUseCase;
-import com.huerto.api.application.usecase.product.ListAvailableProductsUseCase;
-import com.huerto.api.application.usecase.product.FindProductUseCase;
-import com.huerto.api.application.usecase.product.UpdateStockUseCase;
-import com.huerto.api.application.usecase.product.UpdateProductUseCase;
-import com.huerto.api.application.usecase.product.ToggleAvailabilityUseCase;
-import com.huerto.api.application.usecase.product.DeleteProductUseCase;
-import com.huerto.api.application.usecase.product.ListAllProductsUseCase;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import com.huerto.api.application.usecase.product.*;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.exception.InsufficientStockException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
@@ -39,11 +30,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(
@@ -60,8 +48,7 @@ class ProductControllerTest {
     @Autowired ObjectMapper objectMapper;
 
     @MockBean CreateProductUseCase createProductUseCase;
-    @MockBean
-    ListAvailableProductsUseCase listAvailableProductsUseCase;
+    @MockBean ListAvailableProductsUseCase listAvailableProductsUseCase;
     @MockBean FindProductUseCase findProductUseCase;
     @MockBean UpdateProductUseCase updateProductUseCase;
     @MockBean UpdateStockUseCase updateStockUseCase;
@@ -69,24 +56,25 @@ class ProductControllerTest {
     @MockBean DeleteProductUseCase deleteProductUseCase;
     @MockBean ListAllProductsUseCase listAllProductsUseCase;
 
+    private Variety buildVariety(UUID id) {
+        return new Variety(id, "Raf", "Tomato", null);
+    }
+
+    private Product buildProduct(UUID id, Variety variety, int stock, boolean available, int version) {
+        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, stock, available, null, version);
+    }
+
     @Test
     void should_return_201_when_product_is_created() throws Exception {
         UUID varietyId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
 
         ProductRequest request = new ProductRequest(
-                "Tomato",
-                varietyId,
-                new BigDecimal("2.50"),
-                Unit.KG,
-                100
+                "Tomato", varietyId, new BigDecimal("2.50"), Unit.KG, 100
         );
 
-        Variety variety = new Variety(varietyId, "Raf", "Tomato");
-        Product created = new Product(
-                productId, "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0
-        );
+        Variety variety = buildVariety(varietyId);
+        Product created = buildProduct(productId, variety, 100, true, 0);
 
         when(createProductUseCase.execute(any())).thenReturn(created);
 
@@ -105,11 +93,7 @@ class ProductControllerTest {
     @Test
     void should_return_400_when_name_is_blank() throws Exception {
         ProductRequest request = new ProductRequest(
-                "",
-                UUID.randomUUID(),
-                new BigDecimal("2.50"),
-                Unit.KG,
-                100
+                "", UUID.randomUUID(), new BigDecimal("2.50"), Unit.KG, 100
         );
 
         mockMvc.perform(post("/api/v1/products")
@@ -121,11 +105,7 @@ class ProductControllerTest {
     @Test
     void should_return_400_when_price_is_negative() throws Exception {
         ProductRequest request = new ProductRequest(
-                "Tomato",
-                UUID.randomUUID(),
-                new BigDecimal("-1.00"),
-                Unit.KG,
-                100
+                "Tomato", UUID.randomUUID(), new BigDecimal("-1.00"), Unit.KG, 100
         );
 
         mockMvc.perform(post("/api/v1/products")
@@ -137,21 +117,16 @@ class ProductControllerTest {
     @Test
     void should_return_200_with_paginated_products() throws Exception {
         UUID varietyId = UUID.randomUUID();
-        Variety variety = new Variety(varietyId, "Raf", "Tomato");
+        Variety variety = buildVariety(varietyId);
 
-        Product product1 = new Product(
-                UUID.randomUUID(), "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0
-        );
+        Product product1 = buildProduct(UUID.randomUUID(), variety, 100, true, 0);
         Product product2 = new Product(
                 UUID.randomUUID(), "Cherry Tomato", variety,
-                Price.of("3.00"), Unit.KG, 50, true, 0
+                Price.of("3.00"), Unit.KG, 50, true, null, 0
         );
 
         Page<Product> page = new PageImpl<>(
-                List.of(product1, product2),
-                PageRequest.of(0, 10),
-                2
+                List.of(product1, product2), PageRequest.of(0, 10), 2
         );
 
         when(listAvailableProductsUseCase.execute(any(Pageable.class))).thenReturn(page);
@@ -182,11 +157,8 @@ class ProductControllerTest {
     @Test
     void should_return_200_when_product_exists() throws Exception {
         UUID id = UUID.randomUUID();
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
-        Product product = new Product(
-                id, "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0
-        );
+        Variety variety = buildVariety(UUID.randomUUID());
+        Product product = buildProduct(id, variety, 100, true, 0);
 
         when(findProductUseCase.execute(id)).thenReturn(product);
 
@@ -214,7 +186,7 @@ class ProductControllerTest {
     void should_return_200_when_product_is_updated() throws Exception {
         UUID id = UUID.randomUUID();
         UUID varietyId = UUID.randomUUID();
-        Variety variety = new Variety(varietyId, "Raf", "Tomato");
+        Variety variety = buildVariety(varietyId);
 
         ProductRequest request = new ProductRequest(
                 "Updated Tomato", varietyId, new BigDecimal("3.00"), Unit.KG, 80
@@ -222,7 +194,7 @@ class ProductControllerTest {
 
         Product updated = new Product(
                 id, "Updated Tomato", variety,
-                Price.of("3.00"), Unit.KG, 80, true, 1
+                Price.of("3.00"), Unit.KG, 80, true, null, 1
         );
 
         when(updateProductUseCase.execute(any())).thenReturn(updated);
@@ -256,11 +228,8 @@ class ProductControllerTest {
     @Test
     void should_return_200_when_stock_is_updated() throws Exception {
         UUID id = UUID.randomUUID();
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
-        Product updated = new Product(
-                id, "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 150, true, 1
-        );
+        Variety variety = buildVariety(UUID.randomUUID());
+        Product updated = buildProduct(id, variety, 150, true, 1);
 
         when(updateStockUseCase.execute(any())).thenReturn(updated);
 
@@ -300,11 +269,8 @@ class ProductControllerTest {
     @Test
     void should_return_200_when_availability_is_toggled() throws Exception {
         UUID id = UUID.randomUUID();
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
-        Product toggled = new Product(
-                id, "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, false, 1
-        );
+        Variety variety = buildVariety(UUID.randomUUID());
+        Product toggled = buildProduct(id, variety, 100, false, 1);
 
         when(toggleAvailabilityUseCase.execute(id)).thenReturn(toggled);
 
@@ -346,5 +312,4 @@ class ProductControllerTest {
         mockMvc.perform(delete("/api/v1/products/{id}", id))
                 .andExpect(status().isNotFound());
     }
-
 }

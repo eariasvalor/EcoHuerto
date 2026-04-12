@@ -28,8 +28,8 @@ class ToggleAvailabilityUseCaseTest {
     @InjectMocks ToggleAvailabilityUseCaseImpl toggleAvailabilityUseCase;
 
     private Product buildProduct(UUID id, boolean available) {
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
-        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, 100, available, 0);
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
+        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, 100, available, null, 0);
     }
 
     @Test
