@@ -39,15 +39,18 @@ public record Product(
         if (!hasStock(quantity))
             throw new IllegalStateException(
                     "Insufficient stock. Available: " + stock + ", requested: " + quantity);
+        int newStock = stock - quantity;
+        boolean newAvailable = newStock > 0 && available;
         return new Product(id, name, variety, price, unit,
-                stock - quantity, available, version);
+                newStock, newAvailable, version);
     }
 
     public Product increaseStock(int quantity) {
         if (quantity <= 0)
             throw new IllegalArgumentException("Quantity must be positive: " + quantity);
+        int newStock = stock + quantity;
         return new Product(id, name, variety, price, unit,
-                stock + quantity, available, version);
+                newStock, true, version);
     }
 
     public Product toggleAvailability() {
