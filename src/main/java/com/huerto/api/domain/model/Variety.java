@@ -5,7 +5,8 @@ import java.util.UUID;
 public record Variety(
         UUID id,
         String name,
-        String productCategory
+        String productCategory,
+        String imageUrl
 ) {
     public Variety {
         if (name == null || name.isBlank())

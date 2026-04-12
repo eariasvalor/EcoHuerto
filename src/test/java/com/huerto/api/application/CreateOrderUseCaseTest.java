@@ -41,14 +41,14 @@ class CreateOrderUseCaseTest {
 
 
     private Product buildProduct(UUID id, int stock) {
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
-        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, stock, true, 0);
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
+        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, stock, true, null,0);
     }
 
     private Order buildOrder(UUID customerId, UUID productId) {
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Product product = new Product(productId, "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0);
+                Price.of("2.50"), Unit.KG, 100, true, null, 0);
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(UUID.randomUUID(), "HUE-0001", customerId, "",
                 List.of(line), OrderStatus.PENDING, LocalDateTime.now(), 0);

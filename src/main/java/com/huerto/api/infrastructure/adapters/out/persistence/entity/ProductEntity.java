@@ -39,6 +39,9 @@ public class ProductEntity {
     @Column(nullable = false)
     private boolean available;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Version
     private int version;
 }

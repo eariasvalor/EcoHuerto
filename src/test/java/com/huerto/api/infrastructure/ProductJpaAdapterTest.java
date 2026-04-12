@@ -35,13 +35,13 @@ class ProductJpaAdapterTest {
     @InjectMocks ProductJpaAdapter productJpaAdapter;
 
     private Variety buildVariety() {
-        return new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        return new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
     }
 
     private Product buildProduct(Variety variety) {
         return new Product(
                 UUID.randomUUID(), "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0
+                Price.of("2.50"), Unit.KG, 100, true, null,0
         );
     }
 

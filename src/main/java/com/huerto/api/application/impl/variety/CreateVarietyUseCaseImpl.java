@@ -30,7 +30,8 @@ public class CreateVarietyUseCaseImpl implements CreateVarietyUseCase {
         Variety variety = new Variety(
                 Generators.timeBasedEpochGenerator().generate(),
                 command.name(),
-                command.productCategory()
+                command.productCategory(),
+                null
         );
         return varietyRepository.save(variety);
     }

@@ -12,6 +12,7 @@ public class VarietyEntityMapper {
         entity.setId(variety.id());
         entity.setName(variety.name());
         entity.setProductCategory(variety.productCategory());
+        entity.setImageUrl(variety.imageUrl());
         return entity;
     }
 
@@ -19,7 +20,8 @@ public class VarietyEntityMapper {
         return new Variety(
                 entity.getId(),
                 entity.getName(),
-                entity.getProductCategory()
+                entity.getProductCategory(),
+                entity.getImageUrl()
         );
     }
 }

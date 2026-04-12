@@ -13,6 +13,7 @@ public record Product(
         Unit unit,
         int stock,
         boolean available,
+        String imageUrl,
         int version
 ) {
     public Product {
@@ -42,7 +43,7 @@ public record Product(
         int newStock = stock - quantity;
         boolean newAvailable = newStock > 0 && available;
         return new Product(id, name, variety, price, unit,
-                newStock, newAvailable, version);
+                newStock, newAvailable, imageUrl, version);
     }
 
     public Product increaseStock(int quantity) {
@@ -50,11 +51,16 @@ public record Product(
             throw new IllegalArgumentException("Quantity must be positive: " + quantity);
         int newStock = stock + quantity;
         return new Product(id, name, variety, price, unit,
-                newStock, true, version);
+                newStock, true, imageUrl, version);
     }
 
     public Product toggleAvailability() {
         return new Product(id, name, variety, price, unit,
-                stock, !available, version);
+                stock, !available, imageUrl, version);
+    }
+
+    public Product withImageUrl(String imageUrl) {
+        return new Product(id, name, variety, price, unit,
+                stock, available, imageUrl, version);
     }
 }

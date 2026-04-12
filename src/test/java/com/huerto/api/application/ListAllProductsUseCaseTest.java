@@ -30,14 +30,14 @@ class ListAllProductsUseCaseTest {
 
     @Test
     void should_return_all_products_including_unavailable() {
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Product available = new Product(
                 UUID.randomUUID(), "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0
+                Price.of("2.50"), Unit.KG, 100, true, null,0
         );
         Product unavailable = new Product(
                 UUID.randomUUID(), "Cherry Tomato", variety,
-                Price.of("3.00"), Unit.KG, 0, false, 0
+                Price.of("3.00"), Unit.KG, 0, false, null, 0
         );
 
         Pageable pageable = PageRequest.of(0, 10);

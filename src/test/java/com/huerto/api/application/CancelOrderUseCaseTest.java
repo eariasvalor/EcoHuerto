@@ -31,10 +31,10 @@ class CancelOrderUseCaseTest {
     @InjectMocks CancelOrderUseCaseImpl cancelOrderUseCase;
 
     private Order buildOrder(UUID id, OrderStatus status) {
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Product product = new Product(
                 UUID.randomUUID(), "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0
+                Price.of("2.50"), Unit.KG, 100, true, null,0
         );
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(
