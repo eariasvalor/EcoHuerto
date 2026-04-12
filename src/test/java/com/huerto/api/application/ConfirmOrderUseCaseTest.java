@@ -7,6 +7,7 @@ import com.huerto.api.domain.exception.InvalidStatusTransitionException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.*;
 import com.huerto.api.domain.ports.out.OrderRepository;
+import com.huerto.api.domain.ports.out.ProductRepository;
 import com.huerto.api.domain.valueobject.Price;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,10 @@ import static org.mockito.Mockito.*;
 class ConfirmOrderUseCaseTest {
 
     @Mock OrderRepository orderRepository;
+    @Mock
+    ProductRepository productRepository;
     @InjectMocks ConfirmOrderUseCaseImpl confirmOrderUseCase;
+
 
     private Order buildOrder(UUID id, OrderStatus status) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
@@ -47,14 +51,18 @@ class ConfirmOrderUseCaseTest {
     void should_confirm_order_when_pending() {
         UUID id = UUID.randomUUID();
         Order order = buildOrder(id, OrderStatus.PENDING_CONFIRMATION);
+        Product product = order.lines().get(0).product();
 
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));
+        when(productRepository.findById(product.id())).thenReturn(Optional.of(product));
+        when(productRepository.save(any())).thenReturn(product);
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         Order result = confirmOrderUseCase.execute(id);
 
         assertThat(result.status()).isEqualTo(OrderStatus.CONFIRMED);
         verify(orderRepository).save(any());
+        verify(productRepository).save(any());
     }
 
     @Test
