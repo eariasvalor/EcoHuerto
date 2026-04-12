@@ -1,5 +1,6 @@
 package com.huerto.api.infrastructure.adapters.in.web;
 
+import com.huerto.api.application.usecase.product.DeleteProductImageUseCase;
 import com.huerto.api.application.usecase.product.ListAllProductsUseCase;
 import com.huerto.api.application.usecase.product.UploadProductImageUseCase;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductResponse;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,11 +23,16 @@ public class AdminProductController {
 
     private final ListAllProductsUseCase listAllProductsUseCase;
     private final UploadProductImageUseCase uploadProductImageUseCase;
+    private final DeleteProductImageUseCase deleteProductImageUseCase;
 
-    public AdminProductController(ListAllProductsUseCase listAllProductsUseCase, UploadProductImageUseCase uploadProductImageUseCase
+    public AdminProductController(ListAllProductsUseCase listAllProductsUseCase,
+                                  UploadProductImageUseCase uploadProductImageUseCase,
+                                  DeleteProductImageUseCase deleteProductImageUseCase
+
                                   ) {
         this.listAllProductsUseCase = listAllProductsUseCase;
         this.uploadProductImageUseCase = uploadProductImageUseCase;
+        this.deleteProductImageUseCase = deleteProductImageUseCase;
     }
 
     @GetMapping
@@ -47,5 +54,14 @@ public class AdminProductController {
                     org.springframework.http.HttpStatus.BAD_REQUEST, "File must not be empty");
 
         return ProductResponse.from(uploadProductImageUseCase.execute(id, file));
+    }
+
+    @DeleteMapping("/{id}/image")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Delete the image for a product category")
+    @ApiResponse(responseCode = "204", description = "Image deleted")
+    @ApiResponse(responseCode = "404", description = "Product not found")
+    public void deleteImage(@PathVariable UUID id) {
+        deleteProductImageUseCase.execute(id);
     }
 }

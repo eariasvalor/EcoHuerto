@@ -3,6 +3,7 @@ package com.huerto.api.infrastructure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huerto.api.application.usecase.product.ListAllProductsUseCase;
 import com.huerto.api.application.usecase.product.UploadProductImageUseCase;
+import com.huerto.api.application.usecase.product.DeleteProductImageUseCase;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Product;
@@ -32,9 +33,8 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(
@@ -54,6 +54,7 @@ class AdminProductControllerTest {
     @MockBean SecurityContext securityContext;
     @MockBean
     UploadProductImageUseCase uploadProductImageUseCase;
+    @MockBean DeleteProductImageUseCase deleteProductImageUseCase;
 
     @BeforeEach
     void setUp() {
@@ -156,5 +157,26 @@ class AdminProductControllerTest {
                         .file(emptyFile)
                         .with(req -> { req.setMethod("PATCH"); return req; }))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void should_return_204_when_image_is_deleted() throws Exception {
+        UUID productId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/v1/admin/products/{id}/image", productId))
+                .andExpect(status().isNoContent());
+
+        verify(deleteProductImageUseCase).execute(productId);
+    }
+
+    @Test
+    void should_return_404_when_product_not_found_on_image_delete() throws Exception {
+        UUID productId = UUID.randomUUID();
+
+        doThrow(new ResourceNotFoundException("Product", productId))
+                .when(deleteProductImageUseCase).execute(productId);
+
+        mockMvc.perform(delete("/api/v1/admin/products/{id}/image", productId))
+                .andExpect(status().isNotFound());
     }
 }
