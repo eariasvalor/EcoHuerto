@@ -67,20 +67,19 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/customers/{id}").hasAnyRole(ROLE_CUSTOMER, ROLE_ADMIN)
 
                         // Orders
-                        .requestMatchers(HttpMethod.GET, "/api/v1/orders/my").hasAnyRole(ROLE_CUSTOMER, ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.GET,   "/api/v1/orders/my").hasAnyRole(ROLE_CUSTOMER, ROLE_ADMIN)
                         .requestMatchers(HttpMethod.POST,  "/api/v1/orders").hasAnyRole(ROLE_CUSTOMER, ROLE_ADMIN)
                         .requestMatchers(HttpMethod.GET,   "/api/v1/orders").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.GET,   "/api/v1/orders/{id}").hasAnyRole(ROLE_CUSTOMER, ROLE_ADMIN)
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/{id}/confirm").hasRole(ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/{id}/preparation").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/{id}/ready").hasRole(ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/{id}/deliver").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/{id}/cancel").hasAnyRole(ROLE_CUSTOMER, ROLE_ADMIN)
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/{id}/revert").hasRole(ROLE_ADMIN)
 
-
                         // Products admin
                         .requestMatchers(HttpMethod.POST,   "/api/v1/products").hasRole(ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.PUT, ROUTE_PRODUCTS_ID).hasRole(ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.PUT,    ROUTE_PRODUCTS_ID).hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.PATCH,  "/api/v1/products/{id}/stock").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.PATCH,  "/api/v1/products/{id}/availability").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.DELETE, ROUTE_PRODUCTS_ID).hasRole(ROLE_ADMIN)
@@ -89,10 +88,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,   "/api/v1/varieties").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/varieties/{id}").hasRole(ROLE_ADMIN)
 
-                        //ProductAdmin
+                        // Admin — products images (temporal permitAll para testing)
+                        .requestMatchers(HttpMethod.PATCH,  "/api/v1/admin/products/{id}/image").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/products/{id}/image").permitAll()
+
+                        // Admin — varieties images (temporal permitAll para testing)
+                        .requestMatchers(HttpMethod.PATCH,  "/api/v1/admin/varieties/{id}/image").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/varieties/{id}/image").permitAll()
+
+                        // Admin — products
                         .requestMatchers(HttpMethod.GET, "/api/v1/admin/products").hasRole(ROLE_ADMIN)
 
-                        //OrdersAdmin
+                        // Admin — orders
                         .requestMatchers(HttpMethod.GET, "/api/v1/admin/orders/stats").hasRole(ROLE_ADMIN)
 
                         .anyRequest().authenticated()
