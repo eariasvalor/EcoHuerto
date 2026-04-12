@@ -35,6 +35,7 @@ public class OrderController {
     private final SecurityContext securityContext;
     private final ListMyOrdersUseCase listMyOrdersUseCase;
     private final RevertOrderUseCase revertOrderUseCase;
+    private final DeliverOrderUseCase deliverOrderUseCase;
 
     public OrderController(CreateOrderUseCase createOrderUseCase,
                            ListOrdersUseCase listOrdersUseCase,
@@ -44,7 +45,8 @@ public class OrderController {
                            CancelOrderUseCase cancelOrderUseCase,
                            SecurityContext securityContext,
                            ListMyOrdersUseCase listMyOrdersUseCase,
-                           RevertOrderUseCase revertOrderUseCase) {
+                           RevertOrderUseCase revertOrderUseCase,
+                           DeliverOrderUseCase deliverOrderUseCase) {
         this.createOrderUseCase = createOrderUseCase;
         this.listOrdersUseCase = listOrdersUseCase;
         this.findOrderUseCase = findOrderUseCase;
@@ -54,6 +56,7 @@ public class OrderController {
         this.securityContext = securityContext;
         this.listMyOrdersUseCase = listMyOrdersUseCase;
         this.revertOrderUseCase = revertOrderUseCase;
+        this.deliverOrderUseCase = deliverOrderUseCase;
     }
 
     @PostMapping
@@ -159,5 +162,14 @@ public class OrderController {
             @ApiResponse(responseCode = "422", description = "Invalid status transition")
     public OrderResponse revert(@PathVariable UUID id) {
         return OrderResponse.from(revertOrderUseCase.execute(id));
+    }
+
+    @PatchMapping("/{id}/deliver")
+    @Operation(summary = "Mark order as delivered")
+    @ApiResponse(responseCode = "200", description = "Order delivered")
+    @ApiResponse(responseCode = "404", description = "Order not found")
+    @ApiResponse(responseCode = "422", description = "Invalid status transition")
+    public OrderResponse deliver(@PathVariable UUID id) {
+        return OrderResponse.from(deliverOrderUseCase.execute(id));
     }
 }

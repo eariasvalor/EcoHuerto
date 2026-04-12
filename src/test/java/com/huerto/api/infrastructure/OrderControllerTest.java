@@ -61,6 +61,7 @@ class OrderControllerTest {
     @MockBean ListMyOrdersUseCase listMyOrdersUseCase;
     @MockBean GetOrderStatsUseCase getOrderStatsUseCase;
     @MockBean RevertOrderUseCase revertOrderUseCase;
+    @MockBean DeliverOrderUseCase deliverOrderUseCase;
 
     @BeforeEach
     void setUp() {
@@ -459,4 +460,49 @@ class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnprocessableEntity());
     }
+
+    @Test
+    void should_return_200_when_order_is_delivered() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        Order delivered = new Order(
+                orderId, "HUE-0001", customerId, "John Doe",
+                buildOrder(orderId, customerId).lines(),
+                OrderStatus.DELIVERED, LocalDateTime.now(), 1
+        );
+
+        when(deliverOrderUseCase.execute(orderId)).thenReturn(delivered);
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/deliver", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DELIVERED"));
+    }
+
+    @Test
+    void should_return_422_when_order_cannot_be_delivered() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        when(deliverOrderUseCase.execute(orderId))
+                .thenThrow(new InvalidStatusTransitionException(
+                        OrderStatus.PENDING, OrderStatus.DELIVERED));
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/deliver", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void should_return_404_when_order_not_found_on_deliver() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        when(deliverOrderUseCase.execute(orderId))
+                .thenThrow(new ResourceNotFoundException("Order", orderId));
+
+        mockMvc.perform(patch("/api/v1/orders/{id}/deliver", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+
 }

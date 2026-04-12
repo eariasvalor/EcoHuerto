@@ -1,10 +1,9 @@
 package com.huerto.api.infrastructure;
 
 import com.huerto.api.application.usecase.order.GetOrderStatsUseCase;
-import com.huerto.api.domain.model.OrderStats;
+import com.huerto.api.domain.model.*;
 import com.huerto.api.infrastructure.adapters.in.web.AdminOrderController;
 import com.huerto.api.infrastructure.config.SecurityConfig;
-import com.huerto.api.infrastructure.config.SecurityContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -31,7 +30,7 @@ class AdminOrderControllerTest {
 
     @Autowired MockMvc mockMvc;
     @MockBean GetOrderStatsUseCase getOrderStatsUseCase;
-    @MockBean SecurityContext securityContext;
+    @MockBean
 
     @Test
     void should_return_200_with_order_stats() throws Exception {
