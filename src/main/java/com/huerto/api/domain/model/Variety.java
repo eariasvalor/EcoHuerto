@@ -16,4 +16,8 @@ public record Variety(
         name = name.trim();
         productCategory = productCategory.trim();
     }
+
+    public Variety withImageUrl(String imageUrl) {
+        return new Variety(id, name, productCategory, imageUrl);
+    }
 }

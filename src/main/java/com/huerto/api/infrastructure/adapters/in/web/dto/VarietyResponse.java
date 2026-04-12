@@ -6,13 +6,15 @@ import java.util.UUID;
 public record VarietyResponse(
         UUID id,
         String name,
-        String productCategory
+        String productCategory,
+        String imageUrl
 ) {
     public static VarietyResponse from(Variety variety) {
         return new VarietyResponse(
                 variety.id(),
                 variety.name(),
-                variety.productCategory()
+                variety.productCategory(),
+                variety.imageUrl()
         );
     }
 }
