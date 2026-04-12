@@ -1,6 +1,7 @@
 package com.huerto.api.infrastructure;
 
 import com.huerto.api.application.usecase.variety.UploadVarietyImageUseCase;
+import com.huerto.api.application.usecase.variety.DeleteVarietyImageUseCase;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.infrastructure.adapters.in.web.AdminVarietyController;
@@ -20,7 +21,8 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -36,6 +38,8 @@ class AdminVarietyControllerTest {
 
     @Autowired MockMvc mockMvc;
     @MockBean UploadVarietyImageUseCase uploadVarietyImageUseCase;
+    @MockBean DeleteVarietyImageUseCase deleteVarietyImageUseCase;
+
 
     private Variety buildVariety(UUID id, String imageUrl) {
         return new Variety(id, "Raf", "Tomato", imageUrl);
@@ -89,5 +93,26 @@ class AdminVarietyControllerTest {
                         .file(emptyFile)
                         .with(req -> { req.setMethod("PATCH"); return req; }))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void should_return_204_when_image_is_deleted() throws Exception {
+        UUID varietyId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/v1/admin/varieties/{id}/image", varietyId))
+                .andExpect(status().isNoContent());
+
+        verify(deleteVarietyImageUseCase).execute(varietyId);
+    }
+
+    @Test
+    void should_return_404_when_variety_not_found_on_image_delete() throws Exception {
+        UUID varietyId = UUID.randomUUID();
+
+        doThrow(new ResourceNotFoundException("Variety", varietyId))
+                .when(deleteVarietyImageUseCase).execute(varietyId);
+
+        mockMvc.perform(delete("/api/v1/admin/varieties/{id}/image", varietyId))
+                .andExpect(status().isNotFound());
     }
 }

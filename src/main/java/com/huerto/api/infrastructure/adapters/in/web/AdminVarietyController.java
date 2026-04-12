@@ -1,5 +1,6 @@
 package com.huerto.api.infrastructure.adapters.in.web;
 
+import com.huerto.api.application.usecase.variety.DeleteVarietyImageUseCase;
 import com.huerto.api.application.usecase.variety.UploadVarietyImageUseCase;
 import com.huerto.api.infrastructure.adapters.in.web.dto.VarietyResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,9 +20,13 @@ import java.util.UUID;
 public class AdminVarietyController {
 
     private final UploadVarietyImageUseCase uploadVarietyImageUseCase;
+    private final DeleteVarietyImageUseCase deleteVarietyImageUseCase;
 
-    public AdminVarietyController(UploadVarietyImageUseCase uploadVarietyImageUseCase) {
+
+    public AdminVarietyController(UploadVarietyImageUseCase uploadVarietyImageUseCase,
+                                  DeleteVarietyImageUseCase deleteVarietyImageUseCase) {
         this.uploadVarietyImageUseCase = uploadVarietyImageUseCase;
+        this.deleteVarietyImageUseCase = deleteVarietyImageUseCase;
     }
 
     @PatchMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -35,5 +40,14 @@ public class AdminVarietyController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File must not be empty");
 
         return VarietyResponse.from(uploadVarietyImageUseCase.execute(id, file));
+    }
+
+    @DeleteMapping("/{id}/image")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Delete the image for a variety")
+    @ApiResponse(responseCode = "204", description = "Image deleted")
+    @ApiResponse(responseCode = "404", description = "Variety not found")
+    public void deleteImage(@PathVariable UUID id) {
+        deleteVarietyImageUseCase.execute(id);
     }
 }
