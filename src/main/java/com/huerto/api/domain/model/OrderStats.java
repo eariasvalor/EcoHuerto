@@ -1,10 +1,10 @@
 package com.huerto.api.domain.model;
 
 public record OrderStats(
-        long pendingConfirmation,
+        long pending,
         long confirmed,
-        long inPreparation,
-        long readyForPickup,
+        long ready,
+        long delivered,
         long cancelled,
         long total
 ) {}

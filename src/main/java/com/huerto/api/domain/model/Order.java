@@ -31,55 +31,50 @@ public record Order(
         lines = List.copyOf(lines);
     }
 
-
     public Price total() {
         return lines.stream()
                 .map(OrderLine::subtotal)
                 .reduce(Price.ZERO, Price::add);
     }
 
-
     public Order confirm() {
-        assertTransition(OrderStatus.PENDING_CONFIRMATION, OrderStatus.CONFIRMED);
+        assertTransition(OrderStatus.CONFIRMED);
         return withStatus(OrderStatus.CONFIRMED);
     }
 
-    public Order startPreparation() {
-        assertTransition(OrderStatus.CONFIRMED, OrderStatus.IN_PREPARATION);
-        return withStatus(OrderStatus.IN_PREPARATION);
-    }
-
     public Order markReady() {
-        assertTransition(OrderStatus.IN_PREPARATION, OrderStatus.READY_FOR_PICKUP);
+        assertTransition(OrderStatus.READY_FOR_PICKUP);
         return withStatus(OrderStatus.READY_FOR_PICKUP);
     }
 
+    public Order deliver() {
+        assertTransition(OrderStatus.DELIVERED);
+        return withStatus(OrderStatus.DELIVERED);
+    }
+
     public Order cancel() {
-        if (this.status == OrderStatus.CANCELLED)
-            throw new InvalidStatusTransitionException(status, OrderStatus.CANCELLED);
+        assertTransition(OrderStatus.CANCELLED);
         return withStatus(OrderStatus.CANCELLED);
     }
 
-    public boolean isActive() {
-        return this.status != OrderStatus.CANCELLED;
+    public Order revert() {
+        if (this.status != OrderStatus.CONFIRMED)
+            throw new InvalidStatusTransitionException(this.status, OrderStatus.PENDING);
+        return withStatus(OrderStatus.PENDING);
     }
 
+    public boolean isActive() {
+        return this.status != OrderStatus.CANCELLED
+                && this.status != OrderStatus.DELIVERED;
+    }
 
     private Order withStatus(OrderStatus newStatus) {
         return new Order(id, visibleId, customerId, customerName, lines,
                 newStatus, createdAt, version);
     }
 
-    private void assertTransition(OrderStatus expected, OrderStatus next) {
-        if (this.status != expected)
-            throw new InvalidStatusTransitionException(this.status, next);
-    }
-
-    public Order revert() {
-        if (this.status == OrderStatus.CANCELLED || this.status == OrderStatus.READY_FOR_PICKUP)
-            throw new InvalidStatusTransitionException(this.status, OrderStatus.PENDING_CONFIRMATION);
-        if (this.status == OrderStatus.PENDING_CONFIRMATION)
-            throw new InvalidStatusTransitionException(this.status, OrderStatus.PENDING_CONFIRMATION);
-        return withStatus(OrderStatus.PENDING_CONFIRMATION);
+    private void assertTransition(OrderStatus target) {
+        if (!this.status.canTransitionTo(target))
+            throw new InvalidStatusTransitionException(this.status, target);
     }
 }

@@ -53,21 +53,7 @@ class RevertOrderUseCaseTest {
 
         Order result = revertOrderUseCase.execute(id);
 
-        assertThat(result.status()).isEqualTo(OrderStatus.PENDING_CONFIRMATION);
-        verify(orderRepository).save(any());
-    }
-
-    @Test
-    void should_revert_in_preparation_order_to_pending() {
-        UUID id = UUID.randomUUID();
-        Order order = buildOrder(id, OrderStatus.IN_PREPARATION);
-
-        when(orderRepository.findById(id)).thenReturn(Optional.of(order));
-        when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-
-        Order result = revertOrderUseCase.execute(id);
-
-        assertThat(result.status()).isEqualTo(OrderStatus.PENDING_CONFIRMATION);
+        assertThat(result.status()).isEqualTo(OrderStatus.PENDING);
         verify(orderRepository).save(any());
     }
 
@@ -112,7 +98,7 @@ class RevertOrderUseCaseTest {
     @Test
     void should_throw_when_order_is_already_pending() {
         UUID id = UUID.randomUUID();
-        Order order = buildOrder(id, OrderStatus.PENDING_CONFIRMATION);
+        Order order = buildOrder(id, OrderStatus.PENDING);
 
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));
 
@@ -121,4 +107,18 @@ class RevertOrderUseCaseTest {
         assertThatThrownBy(execute).isInstanceOf(InvalidStatusTransitionException.class);
         verify(orderRepository, never()).save(any());
     }
+
+    @Test
+    void should_throw_when_order_is_delivered() {
+        UUID id = UUID.randomUUID();
+        Order order = buildOrder(id, OrderStatus.DELIVERED);
+
+        when(orderRepository.findById(id)).thenReturn(Optional.of(order));
+
+        ThrowingCallable execute = () -> revertOrderUseCase.execute(id);
+
+        assertThatThrownBy(execute).isInstanceOf(InvalidStatusTransitionException.class);
+        verify(orderRepository, never()).save(any());
+    }
+
 }

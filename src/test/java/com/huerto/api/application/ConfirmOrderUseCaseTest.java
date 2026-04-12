@@ -50,7 +50,7 @@ class ConfirmOrderUseCaseTest {
     @Test
     void should_confirm_order_when_pending() {
         UUID id = UUID.randomUUID();
-        Order order = buildOrder(id, OrderStatus.PENDING_CONFIRMATION);
+        Order order = buildOrder(id, OrderStatus.PENDING);
         Product product = order.lines().get(0).product();
 
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));

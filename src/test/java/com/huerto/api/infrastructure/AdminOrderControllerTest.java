@@ -42,10 +42,10 @@ class AdminOrderControllerTest {
         mockMvc.perform(get("/api/v1/admin/orders/stats")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.pendingConfirmation").value(3))
+                .andExpect(jsonPath("$.pending").value(3))
                 .andExpect(jsonPath("$.confirmed").value(5))
-                .andExpect(jsonPath("$.inPreparation").value(2))
-                .andExpect(jsonPath("$.readyForPickup").value(1))
+                .andExpect(jsonPath("$.delivered").value(1))
+                .andExpect(jsonPath("$.ready").value(2))
                 .andExpect(jsonPath("$.cancelled").value(8))
                 .andExpect(jsonPath("$.total").value(19));
     }

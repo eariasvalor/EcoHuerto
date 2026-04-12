@@ -51,7 +51,7 @@ class CreateOrderUseCaseTest {
                 Price.of("2.50"), Unit.KG, 100, true, 0);
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(UUID.randomUUID(), "HUE-0001", customerId, "",
-                List.of(line), OrderStatus.PENDING_CONFIRMATION, LocalDateTime.now(), 0);
+                List.of(line), OrderStatus.PENDING, LocalDateTime.now(), 0);
     }
 
     @Test
@@ -67,7 +67,7 @@ class CreateOrderUseCaseTest {
 
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
-        when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING_CONFIRMATION))
+        when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING))
                 .thenReturn(List.of());
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
@@ -91,7 +91,7 @@ class CreateOrderUseCaseTest {
 
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
-        when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING_CONFIRMATION))
+        when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING))
                 .thenReturn(List.of(existingOrder));
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 

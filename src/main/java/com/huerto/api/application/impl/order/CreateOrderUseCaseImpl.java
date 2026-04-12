@@ -50,7 +50,7 @@ public class CreateOrderUseCaseImpl implements CreateOrderUseCase {
                 command.customerId(),
                 "",
                 lines,
-                OrderStatus.PENDING_CONFIRMATION,
+                OrderStatus.PENDING,
                 LocalDateTime.now(),
                 0
         );
@@ -60,7 +60,7 @@ public class CreateOrderUseCaseImpl implements CreateOrderUseCase {
 
     private boolean isDuplicate(CreateOrderCommand command) {
         List<Order> pendingOrders = orderRepository.findByCustomerIdAndStatus(
-                command.customerId(), OrderStatus.PENDING_CONFIRMATION);
+                command.customerId(), OrderStatus.PENDING);
 
         return pendingOrders.stream().anyMatch(existing ->
                 hasSameLines(existing.lines(), command.lines())

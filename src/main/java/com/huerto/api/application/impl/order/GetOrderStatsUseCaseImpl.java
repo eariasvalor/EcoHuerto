@@ -19,13 +19,13 @@ public class GetOrderStatsUseCaseImpl implements GetOrderStatsUseCase {
 
     @Override
     public OrderStats execute() {
-        long pending = orderRepository.countByStatus(OrderStatus.PENDING_CONFIRMATION);
+        long pending   = orderRepository.countByStatus(OrderStatus.PENDING);
         long confirmed = orderRepository.countByStatus(OrderStatus.CONFIRMED);
-        long inPreparation = orderRepository.countByStatus(OrderStatus.IN_PREPARATION);
-        long ready = orderRepository.countByStatus(OrderStatus.READY_FOR_PICKUP);
+        long ready     = orderRepository.countByStatus(OrderStatus.READY_FOR_PICKUP);
+        long delivered = orderRepository.countByStatus(OrderStatus.DELIVERED);
         long cancelled = orderRepository.countByStatus(OrderStatus.CANCELLED);
-        long total = pending + confirmed + inPreparation + ready + cancelled;
+        long total     = pending + confirmed + ready + delivered + cancelled;
 
-        return new OrderStats(pending, confirmed, inPreparation, ready, cancelled, total);
+        return new OrderStats(pending, confirmed, ready, delivered, cancelled, total);
     }
 }

@@ -11,6 +11,8 @@ import com.huerto.api.domain.valueobject.Price;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,8 +29,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class MarkReadyUseCaseTest {
 
-    @Mock OrderRepository orderRepository;
-    @InjectMocks MarkReadyUseCaseImpl markReadyUseCase;
+    @Mock
+    OrderRepository orderRepository;
+    @InjectMocks
+    MarkReadyUseCaseImpl markReadyUseCase;
 
     private Order buildOrder(UUID id, OrderStatus status) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
@@ -44,9 +48,9 @@ class MarkReadyUseCaseTest {
     }
 
     @Test
-    void should_mark_ready_when_in_preparation() {
+    void should_mark_ready_when_confirmed() {
         UUID id = UUID.randomUUID();
-        Order order = buildOrder(id, OrderStatus.IN_PREPARATION);
+        Order order = buildOrder(id, OrderStatus.CONFIRMED);
 
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
@@ -69,10 +73,12 @@ class MarkReadyUseCaseTest {
         verify(orderRepository, never()).save(any());
     }
 
-    @Test
-    void should_throw_when_order_is_not_in_preparation() {
+
+    @ParameterizedTest
+    @EnumSource(value = OrderStatus.class, names = {"PENDING", "DELIVERED", "CANCELLED"})
+    void should_throw_when_order_cannot_be_marked_ready(OrderStatus status) {
         UUID id = UUID.randomUUID();
-        Order order = buildOrder(id, OrderStatus.CONFIRMED);
+        Order order = buildOrder(id, status);
 
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));
 

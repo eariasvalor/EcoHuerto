@@ -21,18 +21,18 @@ class GetOrderStatsUseCaseTest {
 
     @Test
     void should_return_order_stats_grouped_by_status() {
-        when(orderRepository.countByStatus(OrderStatus.PENDING_CONFIRMATION)).thenReturn(3L);
+        when(orderRepository.countByStatus(OrderStatus.PENDING)).thenReturn(3L);
         when(orderRepository.countByStatus(OrderStatus.CONFIRMED)).thenReturn(5L);
-        when(orderRepository.countByStatus(OrderStatus.IN_PREPARATION)).thenReturn(2L);
         when(orderRepository.countByStatus(OrderStatus.READY_FOR_PICKUP)).thenReturn(1L);
+        when(orderRepository.countByStatus(OrderStatus.DELIVERED)).thenReturn(2L);
         when(orderRepository.countByStatus(OrderStatus.CANCELLED)).thenReturn(8L);
 
         OrderStats stats = getOrderStatsUseCase.execute();
 
-        assertThat(stats.pendingConfirmation()).isEqualTo(3L);
+        assertThat(stats.pending()).isEqualTo(3L);
         assertThat(stats.confirmed()).isEqualTo(5L);
-        assertThat(stats.inPreparation()).isEqualTo(2L);
-        assertThat(stats.readyForPickup()).isEqualTo(1L);
+        assertThat(stats.ready()).isEqualTo(1L);
+        assertThat(stats.delivered()).isEqualTo(2L);
         assertThat(stats.cancelled()).isEqualTo(8L);
         assertThat(stats.total()).isEqualTo(19L);
     }

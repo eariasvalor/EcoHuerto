@@ -55,7 +55,6 @@ class OrderControllerTest {
     @MockBean ListOrdersUseCase listOrdersUseCase;
     @MockBean FindOrderUseCase findOrderUseCase;
     @MockBean ConfirmOrderUseCase confirmOrderUseCase;
-    @MockBean StartPreparationUseCase startPreparationUseCase;
     @MockBean MarkReadyUseCase markReadyUseCase;
     @MockBean CancelOrderUseCase cancelOrderUseCase;
     @MockBean SecurityContext securityContext;
@@ -78,7 +77,7 @@ class OrderControllerTest {
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(
                 orderId, "HUE-0001", customerId, "John Doe",
-                List.of(line), OrderStatus.PENDING_CONFIRMATION,
+                List.of(line), OrderStatus.PENDING,
                 LocalDateTime.now(), 0
         );
     }
@@ -104,7 +103,7 @@ class OrderControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(orderId.toString()))
                 .andExpect(jsonPath("$.visibleId").value("HUE-0001"))
-                .andExpect(jsonPath("$.status").value("PENDING_CONFIRMATION"))
+                .andExpect(jsonPath("$.status").value("PENDING"))
                 .andExpect(jsonPath("$.lines.length()").value(1))
                 .andExpect(jsonPath("$.total").value(5.00))
                 .andExpect(jsonPath("$.possibleDuplicate").value(false));
@@ -187,16 +186,16 @@ class OrderControllerTest {
         Page<Order> page = new PageImpl<>(List.of(order), PageRequest.of(0, 10), 1);
 
         when(listOrdersUseCase.execute(
-                eq(OrderStatus.PENDING_CONFIRMATION), any(), any(Pageable.class)))
+                eq(OrderStatus.PENDING), any(), any(Pageable.class)))
                 .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/orders")
-                        .param("status", "PENDING_CONFIRMATION")
+                        .param("status", "PENDING")
                         .param("page", "0")
                         .param("size", "10")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].status").value("PENDING_CONFIRMATION"));
+                .andExpect(jsonPath("$.content[0].status").value("PENDING"));
     }
 
     @Test
@@ -212,7 +211,7 @@ class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(orderId.toString()))
                 .andExpect(jsonPath("$.visibleId").value("HUE-0001"))
-                .andExpect(jsonPath("$.status").value("PENDING_CONFIRMATION"));
+                .andExpect(jsonPath("$.status").value("PENDING"));
     }
 
     @Test
@@ -266,49 +265,6 @@ class OrderControllerTest {
                         OrderStatus.CONFIRMED, OrderStatus.CONFIRMED));
 
         mockMvc.perform(patch("/api/v1/orders/{id}/confirm", orderId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnprocessableEntity());
-    }
-
-    @Test
-    void should_return_200_when_preparation_is_started() throws Exception {
-        UUID orderId = UUID.randomUUID();
-        UUID customerId = UUID.randomUUID();
-        Order inPreparation = new Order(
-                orderId, "HUE-0001", customerId, "John Doe",
-                buildOrder(orderId, customerId).lines(),
-                OrderStatus.IN_PREPARATION, LocalDateTime.now(), 1
-        );
-
-        when(startPreparationUseCase.execute(orderId)).thenReturn(inPreparation);
-
-        mockMvc.perform(patch("/api/v1/orders/{id}/preparation", orderId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IN_PREPARATION"));
-    }
-
-    @Test
-    void should_return_404_when_order_not_found_on_preparation() throws Exception {
-        UUID orderId = UUID.randomUUID();
-
-        when(startPreparationUseCase.execute(orderId))
-                .thenThrow(new ResourceNotFoundException("Order", orderId));
-
-        mockMvc.perform(patch("/api/v1/orders/{id}/preparation", orderId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void should_return_422_when_invalid_transition_on_preparation() throws Exception {
-        UUID orderId = UUID.randomUUID();
-
-        when(startPreparationUseCase.execute(orderId))
-                .thenThrow(new InvalidStatusTransitionException(
-                        OrderStatus.PENDING_CONFIRMATION, OrderStatus.IN_PREPARATION));
-
-        mockMvc.perform(patch("/api/v1/orders/{id}/preparation", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnprocessableEntity());
     }
@@ -468,7 +424,7 @@ class OrderControllerTest {
         Order reverted = new Order(
                 orderId, "HUE-0001", customerId, "John Doe",
                 buildOrder(orderId, customerId).lines(),
-                OrderStatus.PENDING_CONFIRMATION, LocalDateTime.now(), 1
+                OrderStatus.PENDING, LocalDateTime.now(), 1
         );
 
         when(revertOrderUseCase.execute(orderId)).thenReturn(reverted);
@@ -476,7 +432,7 @@ class OrderControllerTest {
         mockMvc.perform(patch("/api/v1/orders/{id}/revert", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("PENDING_CONFIRMATION"));
+                .andExpect(jsonPath("$.status").value("PENDING"));
     }
 
     @Test
@@ -497,7 +453,7 @@ class OrderControllerTest {
 
         when(revertOrderUseCase.execute(orderId))
                 .thenThrow(new InvalidStatusTransitionException(
-                        OrderStatus.CANCELLED, OrderStatus.PENDING_CONFIRMATION));
+                        OrderStatus.CANCELLED, OrderStatus.PENDING));
 
         mockMvc.perform(patch("/api/v1/orders/{id}/revert", orderId)
                         .contentType(MediaType.APPLICATION_JSON))

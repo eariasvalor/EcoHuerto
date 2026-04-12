@@ -35,7 +35,7 @@ class ListOrdersUseCaseTest {
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(
                 UUID.randomUUID(), "HUE-0001", UUID.randomUUID(), "",
-                List.of(line), OrderStatus.PENDING_CONFIRMATION,
+                List.of(line), OrderStatus.PENDING,
                 LocalDateTime.now(), 0
         );
     }
@@ -60,14 +60,14 @@ class ListOrdersUseCaseTest {
         Order order = buildOrder();
         Page<Order> page = new PageImpl<>(List.of(order), pageable, 1);
 
-        when(orderRepository.findAll(OrderStatus.PENDING_CONFIRMATION, null, pageable))
+        when(orderRepository.findAll(OrderStatus.PENDING, null, pageable))
                 .thenReturn(page);
 
         Page<Order> result = listOrdersUseCase.execute(
-                OrderStatus.PENDING_CONFIRMATION, null, pageable);
+                OrderStatus.PENDING, null, pageable);
 
         assertThat(result.getContent()).hasSize(1);
-        verify(orderRepository).findAll(OrderStatus.PENDING_CONFIRMATION, null, pageable);
+        verify(orderRepository).findAll(OrderStatus.PENDING, null, pageable);
     }
 
     @Test

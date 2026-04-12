@@ -30,7 +30,6 @@ public class OrderController {
     private final ListOrdersUseCase listOrdersUseCase;
     private final FindOrderUseCase findOrderUseCase;
     private final ConfirmOrderUseCase confirmOrderUseCase;
-    private final StartPreparationUseCase startPreparationUseCase;
     private final MarkReadyUseCase markReadyUseCase;
     private final CancelOrderUseCase cancelOrderUseCase;
     private final SecurityContext securityContext;
@@ -41,7 +40,6 @@ public class OrderController {
                            ListOrdersUseCase listOrdersUseCase,
                            FindOrderUseCase findOrderUseCase,
                            ConfirmOrderUseCase confirmOrderUseCase,
-                           StartPreparationUseCase startPreparationUseCase,
                            MarkReadyUseCase markReadyUseCase,
                            CancelOrderUseCase cancelOrderUseCase,
                            SecurityContext securityContext,
@@ -51,7 +49,6 @@ public class OrderController {
         this.listOrdersUseCase = listOrdersUseCase;
         this.findOrderUseCase = findOrderUseCase;
         this.confirmOrderUseCase = confirmOrderUseCase;
-        this.startPreparationUseCase = startPreparationUseCase;
         this.markReadyUseCase = markReadyUseCase;
         this.cancelOrderUseCase = cancelOrderUseCase;
         this.securityContext = securityContext;
@@ -115,15 +112,6 @@ public class OrderController {
         return OrderResponse.from(confirmOrderUseCase.execute(id));
     }
 
-    @PatchMapping("/{id}/preparation")
-    @Operation(summary = "Start order preparation")
-            @ApiResponse(responseCode = "200", description = "Order in preparation")
-            @ApiResponse(responseCode = "404", description = "Order not found")
-            @ApiResponse(responseCode = "422", description = "Invalid status transition")
-    public OrderResponse startPreparation(
-            @Parameter(description = "Order UUID") @PathVariable UUID id) {
-        return OrderResponse.from(startPreparationUseCase.execute(id));
-    }
 
     @PatchMapping("/{id}/ready")
     @Operation(summary = "Mark order as ready for pickup")

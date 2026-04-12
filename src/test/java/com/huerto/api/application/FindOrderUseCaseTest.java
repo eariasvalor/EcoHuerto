@@ -37,7 +37,7 @@ class FindOrderUseCaseTest {
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(
                 id, "HUE-0001", UUID.randomUUID(), "",
-                List.of(line), OrderStatus.PENDING_CONFIRMATION,
+                List.of(line), OrderStatus.PENDING,
                 LocalDateTime.now(), 0
         );
     }

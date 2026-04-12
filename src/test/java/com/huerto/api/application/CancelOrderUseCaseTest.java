@@ -46,7 +46,7 @@ class CancelOrderUseCaseTest {
     @Test
     void should_cancel_order_when_pending() {
         UUID id = UUID.randomUUID();
-        Order order = buildOrder(id, OrderStatus.PENDING_CONFIRMATION);
+        Order order = buildOrder(id, OrderStatus.PENDING);
 
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
