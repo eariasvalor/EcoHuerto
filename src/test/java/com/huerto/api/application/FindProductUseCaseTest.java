@@ -28,10 +28,10 @@ class FindProductUseCaseTest {
     @Test
     void should_return_product_when_found() {
         UUID id = UUID.randomUUID();
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Product product = new Product(
                 id, "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0
+                Price.of("2.50"), Unit.KG, 100, true, null, 0
         );
 
         when(productRepository.findById(id)).thenReturn(Optional.of(product));

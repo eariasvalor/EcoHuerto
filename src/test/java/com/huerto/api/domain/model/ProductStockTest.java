@@ -16,10 +16,10 @@ class ProductStockTest {
 
     @BeforeEach
     void setUp() {
-        variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         product = new Product(
                 UUID.randomUUID(), "Tomate Raf", variety,
-                Price.of("2.50"), Unit.KG, 10, true, 0
+                Price.of("2.50"), Unit.KG, 10, true, null, 0
         );
     }
 
@@ -72,7 +72,7 @@ class ProductStockTest {
     void should_set_available_to_true_when_stock_is_increased() {
         Product unavailable = new Product(
                 UUID.randomUUID(), "Tomate Raf", variety,
-                Price.of("2.50"), Unit.KG, 0, false, 0
+                Price.of("2.50"), Unit.KG, 0, false, null, 0
         );
         Product result = unavailable.increaseStock(5);
         assertThat(result.stock()).isEqualTo(5);

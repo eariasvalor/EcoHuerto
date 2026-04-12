@@ -27,7 +27,6 @@ import java.util.List;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -51,11 +50,15 @@ class VarietyControllerTest {
     @MockBean ListVarietiesUseCase listVarietiesUseCase;
     @MockBean DeleteVarietyUseCase deleteVarietyUseCase;
 
+    private Variety buildVariety(UUID id) {
+        return new Variety(id, "Raf", "Tomato", null);
+    }
+
     @Test
     void should_return_201_when_variety_is_created() throws Exception {
         UUID id = UUID.randomUUID();
         VarietyRequest request = new VarietyRequest("Raf", "Tomato");
-        Variety created = new Variety(id, "Raf", "Tomato");
+        Variety created = buildVariety(id);
 
         when(createVarietyUseCase.execute(any())).thenReturn(created);
 
@@ -91,12 +94,10 @@ class VarietyControllerTest {
     @Test
     void should_return_200_with_paginated_varieties() throws Exception {
         UUID id = UUID.randomUUID();
-        Variety variety = new Variety(id, "Raf", "Tomato");
+        Variety variety = buildVariety(id);
 
         Page<Variety> page = new PageImpl<>(
-                List.of(variety),
-                PageRequest.of(0, 10),
-                1
+                List.of(variety), PageRequest.of(0, 10), 1
         );
 
         when(listVarietiesUseCase.execute(any(Pageable.class))).thenReturn(page);

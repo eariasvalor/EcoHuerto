@@ -25,7 +25,7 @@ class ListVarietiesUseCaseTest {
     @Test
     void should_return_paginated_varieties() {
         Pageable pageable = PageRequest.of(0, 10);
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Page<Variety> page = new PageImpl<>(List.of(variety), pageable, 1);
 
         when(varietyRepository.findAll(pageable)).thenReturn(page);

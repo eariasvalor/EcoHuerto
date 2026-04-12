@@ -30,8 +30,8 @@ class UpdateStockUseCaseTest {
     @InjectMocks UpdateStockUseCaseImpl updateStockUseCase;
 
     private Product buildProduct(UUID id, int stock) {
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato");
-        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, stock, true, 0);
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
+        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, stock, true, null, 0);
     }
 
     @Test

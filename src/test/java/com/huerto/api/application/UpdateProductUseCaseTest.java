@@ -30,21 +30,22 @@ class UpdateProductUseCaseTest {
     @Mock VarietyRepository varietyRepository;
     @InjectMocks UpdateProductUseCaseImpl updateProductUseCase;
 
+    private Product buildProduct(UUID id, int stock) {
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
+        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, stock, true, null, 0);
+    }
+
     @Test
     void should_update_product_when_exists() {
         UUID id = UUID.randomUUID();
-        UUID varietyId = UUID.randomUUID();
-        Variety variety = new Variety(varietyId, "Raf", "Tomato");
-        Product existing = new Product(
-                id, "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0
-        );
+       Product existing = buildProduct(id, 100);
+
         UpdateProductCommand command = new UpdateProductCommand(
-                id, "Updated Tomato", varietyId, new BigDecimal("3.00"), Unit.KG
+                id, "Updated Tomato", existing.variety().id(), new BigDecimal("3.00"), Unit.KG
         );
 
         when(productRepository.findById(id)).thenReturn(Optional.of(existing));
-        when(varietyRepository.findById(varietyId)).thenReturn(Optional.of(variety));
+        when(varietyRepository.findById(existing.variety().id())).thenReturn(Optional.of(existing.variety()));
         when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         Product result = updateProductUseCase.execute(command);
@@ -52,6 +53,7 @@ class UpdateProductUseCaseTest {
         assertThat(result.name()).isEqualTo("Updated Tomato");
         assertThat(result.price().amount()).isEqualByComparingTo("3.00");
         verify(productRepository).save(any());
+        assertThat(result.imageUrl()).isNull();
     }
 
     @Test
@@ -74,10 +76,10 @@ class UpdateProductUseCaseTest {
     void should_throw_when_variety_not_found() {
         UUID id = UUID.randomUUID();
         UUID varietyId = UUID.randomUUID();
-        Variety variety = new Variety(varietyId, "Raf", "Tomato");
+        Variety variety = new Variety(varietyId, "Raf", "Tomato", null);
         Product existing = new Product(
                 id, "Tomato", variety,
-                Price.of("2.50"), Unit.KG, 100, true, 0
+                Price.of("2.50"), Unit.KG, 100, true, null, 0
         );
         UpdateProductCommand command = new UpdateProductCommand(
                 id, "Updated Tomato", varietyId, new BigDecimal("3.00"), Unit.KG
