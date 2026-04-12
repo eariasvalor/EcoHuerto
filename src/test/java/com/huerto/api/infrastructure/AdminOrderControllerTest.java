@@ -30,7 +30,6 @@ class AdminOrderControllerTest {
 
     @Autowired MockMvc mockMvc;
     @MockBean GetOrderStatsUseCase getOrderStatsUseCase;
-    @MockBean
 
     @Test
     void should_return_200_with_order_stats() throws Exception {
