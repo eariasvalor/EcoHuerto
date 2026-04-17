@@ -16,4 +16,8 @@ public record PhoneNumber(String countryCode, String number) {
         if (!number.matches("^\\d{6,15}$"))
             throw new IllegalArgumentException("Phone number must contain between 6 and 15 digits");
     }
+
+    public String fullNumber() {
+        return countryCode + number;
+    }
 }
