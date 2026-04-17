@@ -5,10 +5,12 @@ import com.huerto.api.application.commands.CreateOrderCommand;
 import com.huerto.api.application.usecase.order.CreateOrderResult;
 import com.huerto.api.application.usecase.order.CreateOrderUseCase;
 import com.huerto.api.domain.enums.OrderStatus;
+import com.huerto.api.domain.events.OrderCreatedEvent;
 import com.huerto.api.domain.exception.InsufficientStockException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.*;
 import com.huerto.api.domain.ports.out.CustomerRepository;
+import com.huerto.api.domain.ports.out.EventPublisher;
 import com.huerto.api.domain.ports.out.OrderRepository;
 import com.huerto.api.domain.ports.out.ProductRepository;
 import org.springframework.stereotype.Service;
@@ -26,13 +28,17 @@ public class CreateOrderUseCaseImpl implements CreateOrderUseCase {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final CustomerRepository customerRepository;
+    private final EventPublisher eventPublisher;
+
 
     public CreateOrderUseCaseImpl(OrderRepository orderRepository,
                                   ProductRepository productRepository,
-                                  CustomerRepository customerRepository) {
+                                  CustomerRepository customerRepository,
+                                  EventPublisher eventPublisher) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.customerRepository = customerRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -55,7 +61,10 @@ public class CreateOrderUseCaseImpl implements CreateOrderUseCase {
                 0
         );
 
-        return new CreateOrderResult(orderRepository.save(order), possibleDuplicate);
+        Order saved = orderRepository.save(order);
+        eventPublisher.publish(new OrderCreatedEvent(saved, LocalDateTime.now()));
+
+        return new CreateOrderResult(saved, possibleDuplicate);
     }
 
     private boolean isDuplicate(CreateOrderCommand command) {

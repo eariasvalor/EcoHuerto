@@ -5,10 +5,12 @@ import com.huerto.api.application.impl.order.CreateOrderUseCaseImpl;
 import com.huerto.api.application.usecase.order.CreateOrderResult;
 import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.enums.Unit;
+import com.huerto.api.domain.events.OrderCreatedEvent;
 import com.huerto.api.domain.exception.InsufficientStockException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.*;
 import com.huerto.api.domain.ports.out.CustomerRepository;
+import com.huerto.api.domain.ports.out.EventPublisher;
 import com.huerto.api.domain.ports.out.OrderRepository;
 import com.huerto.api.domain.ports.out.ProductRepository;
 import com.huerto.api.domain.valueobject.Credentials;
@@ -18,6 +20,7 @@ import com.huerto.api.util.CustomerTestFactory;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -37,6 +40,7 @@ class CreateOrderUseCaseTest {
     @Mock OrderRepository orderRepository;
     @Mock ProductRepository productRepository;
     @Mock CustomerRepository customerRepository;
+    @Mock EventPublisher eventPublisher;
     @InjectMocks CreateOrderUseCaseImpl createOrderUseCase;
 
 
@@ -98,6 +102,33 @@ class CreateOrderUseCaseTest {
         CreateOrderResult result = createOrderUseCase.execute(command);
 
         assertThat(result.possibleDuplicate()).isTrue();
+    }
+
+    @Test
+    void should_publish_order_created_event_after_creating() {
+        UUID customerId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        Customer customer = CustomerTestFactory.buildCustomer(customerId);
+        Product product = buildProduct(productId, 100);
+
+        CreateOrderCommand command = new CreateOrderCommand(
+                customerId, List.of(new CreateOrderCommand.OrderLineCommand(productId, 2))
+        );
+
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING))
+                .thenReturn(List.of());
+        when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        createOrderUseCase.execute(command);
+
+        ArgumentCaptor<OrderCreatedEvent> captor =
+                ArgumentCaptor.forClass(OrderCreatedEvent.class);
+        verify(eventPublisher).publish(captor.capture());
+
+        assertThat(captor.getValue().order().customerId()).isEqualTo(customerId);
+        assertThat(captor.getValue().occurredAt()).isNotNull();
     }
 
     @Test

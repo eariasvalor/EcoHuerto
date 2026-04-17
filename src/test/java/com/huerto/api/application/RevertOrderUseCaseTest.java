@@ -3,14 +3,17 @@ package com.huerto.api.application;
 import com.huerto.api.application.impl.order.RevertOrderUseCaseImpl;
 import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.enums.Unit;
+import com.huerto.api.domain.events.OrderStatusChangedEvent;
 import com.huerto.api.domain.exception.InvalidStatusTransitionException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.*;
+import com.huerto.api.domain.ports.out.EventPublisher;
 import com.huerto.api.domain.ports.out.OrderRepository;
 import com.huerto.api.domain.valueobject.Price;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,6 +31,7 @@ import static org.mockito.Mockito.*;
 class RevertOrderUseCaseTest {
 
     @Mock OrderRepository orderRepository;
+    @Mock EventPublisher eventPublisher;
     @InjectMocks RevertOrderUseCaseImpl revertOrderUseCase;
 
     private Order buildOrder(UUID id, OrderStatus status) {
@@ -41,6 +45,24 @@ class RevertOrderUseCaseTest {
                 id, "HUE-0001", UUID.randomUUID(), "",
                 List.of(line), status, LocalDateTime.now(), 0
         );
+    }
+
+    @Test
+    void should_publish_status_changed_event_after_reverting() {
+        UUID id = UUID.randomUUID();
+        Order order = buildOrder(id, OrderStatus.CONFIRMED);
+
+        when(orderRepository.findById(id)).thenReturn(Optional.of(order));
+        when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        revertOrderUseCase.execute(id);
+
+        ArgumentCaptor<OrderStatusChangedEvent> captor =
+                ArgumentCaptor.forClass(OrderStatusChangedEvent.class);
+        verify(eventPublisher).publish(captor.capture());
+
+        assertThat(captor.getValue().previousStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        assertThat(captor.getValue().newStatus()).isEqualTo(OrderStatus.PENDING);
     }
 
     @Test

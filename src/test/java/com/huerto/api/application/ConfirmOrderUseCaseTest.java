@@ -3,15 +3,18 @@ package com.huerto.api.application;
 import com.huerto.api.application.impl.order.ConfirmOrderUseCaseImpl;
 import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.enums.Unit;
+import com.huerto.api.domain.events.OrderStatusChangedEvent;
 import com.huerto.api.domain.exception.InvalidStatusTransitionException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.*;
+import com.huerto.api.domain.ports.out.EventPublisher;
 import com.huerto.api.domain.ports.out.OrderRepository;
 import com.huerto.api.domain.ports.out.ProductRepository;
 import com.huerto.api.domain.valueobject.Price;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -29,8 +32,8 @@ import static org.mockito.Mockito.*;
 class ConfirmOrderUseCaseTest {
 
     @Mock OrderRepository orderRepository;
-    @Mock
-    ProductRepository productRepository;
+    @Mock ProductRepository productRepository;
+    @Mock EventPublisher eventPublisher;
     @InjectMocks ConfirmOrderUseCaseImpl confirmOrderUseCase;
 
 
@@ -78,6 +81,30 @@ class ConfirmOrderUseCaseTest {
     }
 
     @Test
+    void should_publish_status_changed_event_after_confirming() {
+        UUID id = UUID.randomUUID();
+        Order order = buildOrder(id, OrderStatus.PENDING);
+        Product product = order.lines().get(0).product();
+
+        when(orderRepository.findById(id)).thenReturn(Optional.of(order));
+        when(productRepository.findById(product.id())).thenReturn(Optional.of(product));
+        when(productRepository.save(any())).thenReturn(product);
+        when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        confirmOrderUseCase.execute(id);
+
+        ArgumentCaptor<OrderStatusChangedEvent> captor =
+                ArgumentCaptor.forClass(OrderStatusChangedEvent.class);
+        verify(eventPublisher).publish(captor.capture());
+
+        OrderStatusChangedEvent event = captor.getValue();
+        assertThat(event.previousStatus()).isEqualTo(OrderStatus.PENDING);
+        assertThat(event.newStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        assertThat(event.order().id()).isEqualTo(id);
+        assertThat(event.occurredAt()).isNotNull();
+    }
+
+    @Test
     void should_throw_when_order_already_confirmed() {
         UUID id = UUID.randomUUID();
         Order order = buildOrder(id, OrderStatus.CONFIRMED);
@@ -90,4 +117,6 @@ class ConfirmOrderUseCaseTest {
                 .isInstanceOf(InvalidStatusTransitionException.class);
         verify(orderRepository, never()).save(any());
     }
+
+
 }
