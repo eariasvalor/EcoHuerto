@@ -6,10 +6,11 @@ import com.huerto.api.domain.enums.NotificationType;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record Notification (
+public record Notification(
         UUID id,
         NotificationType type,
         UUID customerId,
+        String recipientPhone,
         String templateId,
         String messageText,
         String mediaId,
@@ -18,7 +19,6 @@ public record Notification (
         LocalDateTime createdAt,
         LocalDateTime sentAt
 ) {
-
     public Notification {
         if (type == null)
             throw new IllegalArgumentException("Type must not be null");
@@ -29,17 +29,17 @@ public record Notification (
     }
 
     public Notification withDeliveryStatus(DeliveryStatus newStatus) {
-        return new Notification(id, type, customerId, templateId, messageText,
-                mediaId, newStatus, attempts, createdAt, sentAt);
+        return new Notification(id, type, customerId, recipientPhone, templateId,
+                messageText, mediaId, newStatus, attempts, createdAt, sentAt);
     }
 
     public Notification withSentAt(LocalDateTime sentAt) {
-        return new Notification(id, type, customerId, templateId, messageText,
-                mediaId, deliveryStatus, attempts, createdAt, sentAt);
+        return new Notification(id, type, customerId, recipientPhone, templateId,
+                messageText, mediaId, deliveryStatus, attempts, createdAt, sentAt);
     }
 
     public Notification incrementAttempts() {
-        return new Notification(id, type, customerId, templateId, messageText,
-                mediaId, deliveryStatus, attempts + 1, createdAt, sentAt);
+        return new Notification(id, type, customerId, recipientPhone, templateId,
+                messageText, mediaId, deliveryStatus, attempts + 1, createdAt, sentAt);
     }
 }

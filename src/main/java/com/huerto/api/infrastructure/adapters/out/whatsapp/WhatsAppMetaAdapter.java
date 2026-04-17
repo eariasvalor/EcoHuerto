@@ -44,7 +44,7 @@ public class WhatsAppMetaAdapter implements WhatsAppPort {
                 props.templates().statusChange(),
                 List.of(orderId, status.name()));
 
-        send(body, NotificationType.STATUS_CHANGE, null, null);
+        send(body, NotificationType.STATUS_CHANGE, phone, null, null);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class WhatsAppMetaAdapter implements WhatsAppPort {
                 List.of(customerName, order.visibleId(),
                         order.total().amount().toPlainString()));
 
-        send(body, NotificationType.NEW_ORDER_ADMIN, null, null);
+        send(body, NotificationType.NEW_ORDER_ADMIN, adminPhone, null, null);
     }
 
     @Override
@@ -65,14 +65,15 @@ public class WhatsAppMetaAdapter implements WhatsAppPort {
 
         Map<String, Object> body = buildTemplateBody(phone, templateName, List.of(text));
 
-        send(body, NotificationType.MANUAL, text, mediaId);
+        send(body, NotificationType.MANUAL, phone, text, mediaId);
     }
 
     private void send(Map<String, Object> body, NotificationType type,
-                      String messageText, String mediaId) {
+                      String recipientPhone, String messageText, String mediaId) {
         Notification notification = notificationRepository.save(new Notification(
                 UUID.randomUUID(), type,
                 UUID.fromString("00000000-0000-0000-0000-000000000000"),
+                recipientPhone,
                 templateName(body), messageText, mediaId,
                 DeliveryStatus.PENDING, 0, LocalDateTime.now(), null
         ));

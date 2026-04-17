@@ -25,6 +25,9 @@ public class NotificationEntity {
     @Column(name = "customer_id", nullable = false)
     private UUID customerId;
 
+    @Column(name = "recipient_phone")
+    private String recipientPhone;
+
     @Column(name = "template_id")
     private String templateId;
 

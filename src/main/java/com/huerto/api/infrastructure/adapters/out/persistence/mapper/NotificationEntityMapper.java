@@ -12,6 +12,7 @@ public class NotificationEntityMapper {
         entity.setId(notification.id());
         entity.setType(notification.type());
         entity.setCustomerId(notification.customerId());
+        entity.setRecipientPhone(notification.recipientPhone());
         entity.setTemplateId(notification.templateId());
         entity.setMessageText(notification.messageText());
         entity.setMediaId(notification.mediaId());
@@ -27,6 +28,7 @@ public class NotificationEntityMapper {
                 entity.getId(),
                 entity.getType(),
                 entity.getCustomerId(),
+                entity.getRecipientPhone(),
                 entity.getTemplateId(),
                 entity.getMessageText(),
                 entity.getMediaId(),

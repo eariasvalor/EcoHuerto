@@ -16,6 +16,7 @@ class NotificationTest {
                 UUID.randomUUID(),
                 NotificationType.STATUS_CHANGE,
                 UUID.randomUUID(),
+                "+34612345678",
                 "template_id",
                 "message text",
                 null,
@@ -61,7 +62,7 @@ class NotificationTest {
         LocalDateTime now = LocalDateTime.now();
 
         assertThatThrownBy(() -> new Notification(
-                id, null, customerId,
+                id, null, customerId, "+34612345678",
                 null, null, null, DeliveryStatus.PENDING, 0, now, null
         )).isInstanceOf(IllegalArgumentException.class);
     }
@@ -72,7 +73,7 @@ class NotificationTest {
         LocalDateTime now = LocalDateTime.now();
 
         assertThatThrownBy(() -> new Notification(
-                id, NotificationType.STATUS_CHANGE, null,
+                id, NotificationType.STATUS_CHANGE, null, "+34612345678",
                 null, null, null, DeliveryStatus.PENDING, 0, now, null
         )).isInstanceOf(IllegalArgumentException.class);
     }
@@ -84,7 +85,7 @@ class NotificationTest {
         LocalDateTime now = LocalDateTime.now();
 
         assertThatThrownBy(() -> new Notification(
-                id, NotificationType.STATUS_CHANGE, customerId,
+                id, NotificationType.STATUS_CHANGE, customerId, "+34612345678",
                 null, null, null, null, 0, now, null
         )).isInstanceOf(IllegalArgumentException.class);
     }
