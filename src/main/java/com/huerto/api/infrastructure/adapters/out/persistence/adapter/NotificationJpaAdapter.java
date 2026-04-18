@@ -5,6 +5,8 @@ import com.huerto.api.domain.model.Notification;
 import com.huerto.api.domain.ports.out.NotificationRepository;
 import com.huerto.api.infrastructure.adapters.out.persistence.mapper.NotificationEntityMapper;
 import com.huerto.api.infrastructure.adapters.out.persistence.repository.NotificationJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -34,5 +36,11 @@ public class NotificationJpaAdapter implements NotificationRepository {
                 .stream()
                 .map(mapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Page<Notification> findAll(DeliveryStatus status, Pageable pageable) {
+        return jpaRepository.findByDeliveryStatus(status, pageable)
+                .map(mapper::toDomain);
     }
 }

@@ -87,7 +87,7 @@ class SendManualNotificationUseCaseImplTest {
 
         verify(whatsAppPort).sendManualNotification(
                 c1.phone().fullNumber(),
-                "Mira esta foto!",
+                "¡Mira esta foto!",
                 "https://cloudinary.com/img.jpg"
         );
     }

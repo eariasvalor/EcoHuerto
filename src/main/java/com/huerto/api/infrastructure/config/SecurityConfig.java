@@ -107,6 +107,7 @@ public class SecurityConfig {
 
                         // Admin - notifications
                         .requestMatchers(HttpMethod.POST, "/api/v1/admin/notifications").hasRole(ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/notifications").hasRole(ROLE_ADMIN)
 
                         .anyRequest().authenticated()
                 )
