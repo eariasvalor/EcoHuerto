@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -49,7 +50,13 @@ public class NotificationRetryScheduler {
                     notification.messageText(),
                     notification.mediaId()
             );
+
+            notificationRepository.save(notification
+                    .withDeliveryStatus(DeliveryStatus.SENT)
+                    .withSentAt(LocalDateTime.now()));
+
             log.info("Retry succeeded for notification {}", notification.id());
+
         } catch (Exception e) {
             log.warn("Retry failed for notification {}: {}", notification.id(), e.getMessage());
 
