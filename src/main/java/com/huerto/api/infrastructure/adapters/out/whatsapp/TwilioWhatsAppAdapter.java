@@ -10,6 +10,7 @@ import com.huerto.api.domain.ports.out.WhatsAppPort;
 import com.huerto.api.infrastructure.config.TwilioProperties;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
+import com.twilio.rest.api.v2010.account.MessageCreator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,25 +52,31 @@ public class TwilioWhatsAppAdapter implements WhatsAppPort {
     }
 
     @Override
-    public void sendManualNotification(String phone, String text, String mediaId) {
-        send(phone, text, NotificationType.MANUAL, text, mediaId);
+    public void sendManualNotification(String phone, String text, String mediaUrl) {
+        send(phone, text, NotificationType.MANUAL, text, mediaUrl);
     }
 
     private void send(String phone, String text, NotificationType type,
-                      String messageText, String mediaId) {
+                      String messageText, String mediaUrl) {
         Notification notification = notificationRepository.save(new Notification(
                 UUID.randomUUID(), type,
                 UUID.fromString("00000000-0000-0000-0000-000000000000"),
-                phone, null, messageText, mediaId,
+                phone, null, messageText, mediaUrl,
                 DeliveryStatus.PENDING, 0, LocalDateTime.now(), null
         ));
 
         try {
-            Message.creator(
+            MessageCreator creator = Message.creator(
                     new PhoneNumber("whatsapp:" + phone),
                     new PhoneNumber(props.whatsappFrom()),
                     text
-            ).create();
+            );
+
+            if (mediaUrl != null) {
+                creator.setMediaUrl(java.util.List.of(java.net.URI.create(mediaUrl)));
+            }
+
+            creator.create();
 
             notificationRepository.save(notification
                     .withDeliveryStatus(DeliveryStatus.SENT)
