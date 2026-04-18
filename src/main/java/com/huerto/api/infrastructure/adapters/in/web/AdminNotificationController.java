@@ -32,16 +32,20 @@ public class AdminNotificationController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public SendManualNotificationResponse send(
-            @RequestPart("customerIds") List<UUID> customerIds,
-            @RequestPart("messageText") String messageText,
-            @RequestPart(value = "file", required = false) MultipartFile file) throws IOException {
+            @RequestParam("customerIds") List<String> customerIds,
+            @RequestParam("messageText") String messageText,
+            @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
+
+        List<UUID> customerUUIDs = customerIds.stream()
+                .map(UUID::fromString)
+                .toList();
 
         byte[] imageBytes = file != null ? file.getBytes() : null;
         String mimeType = file != null ? file.getContentType() : null;
         String filename = file != null ? file.getOriginalFilename() : null;
 
         return sendManualNotificationUseCase.execute(
-                customerIds, messageText, imageBytes, mimeType, filename);
+                customerUUIDs, messageText, imageBytes, mimeType, filename);
     }
 
     @GetMapping
