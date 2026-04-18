@@ -80,11 +80,11 @@ public class TwilioWhatsAppAdapter implements WhatsAppPort {
 
     private String buildStatusChangeText(String orderId, OrderStatus status) {
         return switch (status) {
-            case CONFIRMED -> "Hola! Tu pedido %s ha sido confirmado. Pronto lo prepararemos."
+            case CONFIRMED -> "¡Hola! Tu pedido %s está confirmado. Pronto lo prepararemos."
                     .formatted(orderId);
-            case READY_FOR_PICKUP -> "Tu pedido %s está listo para recoger. Puedes venir a buscarlo!"
+            case READY_FOR_PICKUP -> "Tu pedido %s está listo. ¡Te lo enviaremos en las próximas horas!"
                     .formatted(orderId);
-            case CANCELLED -> "Tu pedido %s ha sido cancelado. Contacta con nosotros si tienes dudas."
+            case CANCELLED -> "Tu pedido %s se ha cancelado. Contacta con nosotros si tienes dudas."
                     .formatted(orderId);
             case PENDING -> "Hemos recibido tu pedido %s. En breve lo confirmaremos."
                     .formatted(orderId);
@@ -93,8 +93,11 @@ public class TwilioWhatsAppAdapter implements WhatsAppPort {
     }
 
     private String buildNewOrderText(Order order, String customerName) {
-        return "Nuevo pedido recibido!%nCliente: %s%nPedido: %s%nTotal: %s€"
-                .formatted(customerName, order.visibleId(),
-                        order.total().amount().toPlainString());
+        return String.join("\n",
+                "¡Nuevo pedido recibido!",
+                "Cliente: " + customerName,
+                "Pedido: " + order.visibleId(),
+                "Total: " + order.total().amount().toPlainString() + "€"
+        );
     }
 }
