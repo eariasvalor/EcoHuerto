@@ -1,0 +1,1 @@
+ALTER TABLE notifications DROP CONSTRAINT fk_notifications_customer;
