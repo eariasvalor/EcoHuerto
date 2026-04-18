@@ -5,6 +5,5 @@ import java.util.UUID;
 
 public record SendManualNotificationRequest(
         List<UUID> customerIds,
-        String messageText,
-        String mediaUrl
+        String messageText
 ) {}

@@ -6,5 +6,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface SendManualNotificationUseCase {
-    SendManualNotificationResponse execute(List<UUID> customerIds, String messageText, String mediaUrl);
+    SendManualNotificationResponse execute(List<UUID> customerIds, String messageText, byte[] imageBytes, String mimeType, String filename);
 }
