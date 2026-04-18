@@ -10,6 +10,7 @@ import com.huerto.api.domain.ports.out.WhatsAppPort;
 import com.huerto.api.infrastructure.config.WhatsAppProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -31,6 +32,9 @@ public class WhatsAppMetaAdapter implements WhatsAppPort {
     private final WhatsAppProperties props;
     private final NotificationRepository notificationRepository;
     private static final String TEMPLATE_VALUE = "template";
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     public WhatsAppMetaAdapter(RestTemplate restTemplate,
                                WhatsAppProperties props,
@@ -54,7 +58,8 @@ public class WhatsAppMetaAdapter implements WhatsAppPort {
         Map<String, Object> body = buildTemplateBody(adminPhone,
                 props.templates().newOrderAdmin(),
                 List.of(customerName, order.visibleId(),
-                        order.total().amount().toPlainString()));
+                        order.total().amount().toPlainString(),
+                        frontendUrl + "/admin/orders"));
 
         send(body, NotificationType.NEW_ORDER_ADMIN, adminPhone, null, null);
     }
