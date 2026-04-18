@@ -44,7 +44,7 @@ class NotificationRetrySchedulerTest {
     }
 
     @Test
-    void should_retry_failed_notifications_and_not_update_on_success() {
+    void should_mark_as_sent_after_successful_retry() {
         Notification failed = buildFailedNotification(1);
 
         when(notificationRepository.findByDeliveryStatusAndAttemptsLessThan(
@@ -57,7 +57,12 @@ class NotificationRetrySchedulerTest {
                 "Tu pedido ha cambiado de estado",
                 null
         );
-        verify(notificationRepository, never()).save(any());
+
+        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        verify(notificationRepository).save(captor.capture());
+
+        assertThat(captor.getValue().deliveryStatus()).isEqualTo(DeliveryStatus.SENT);
+        assertThat(captor.getValue().sentAt()).isNotNull();
     }
 
     @Test

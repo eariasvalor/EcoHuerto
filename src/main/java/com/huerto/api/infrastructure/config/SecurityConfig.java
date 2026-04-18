@@ -102,6 +102,9 @@ public class SecurityConfig {
                         // Admin — orders
                         .requestMatchers(HttpMethod.GET, "/api/v1/admin/orders/stats").hasRole(ROLE_ADMIN)
 
+                        //Media
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/media").hasRole(ROLE_ADMIN)
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
