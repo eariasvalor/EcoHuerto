@@ -29,7 +29,6 @@ public class AdminMediaController {
     }
 
     @PostMapping(consumes = "multipart/form-data")
-    @PreAuthorize("hasAnyRole('OWNER', 'ASSISTANT')")
     public MediaUploadResult upload(@RequestParam("file") MultipartFile file)
             throws IOException {
 
