@@ -105,6 +105,9 @@ public class SecurityConfig {
                         //Media
                         .requestMatchers(HttpMethod.POST, "/api/v1/admin/media").hasRole(ROLE_ADMIN)
 
+                        // Admin - notifications
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/notifications").hasRole(ROLE_ADMIN)
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
