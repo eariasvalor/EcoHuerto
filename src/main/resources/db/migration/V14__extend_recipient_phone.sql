@@ -1,1 +1,0 @@
-ALTER TABLE notifications ALTER COLUMN recipient_phone TYPE VARCHAR(30);

@@ -1,2 +1,0 @@
-UPDATE orders SET status = 'PENDING'   WHERE status = 'PENDING_CONFIRMATION';
-UPDATE orders SET status = 'CONFIRMED' WHERE status = 'IN_PREPARATION';
