@@ -10,8 +10,10 @@ import com.huerto.api.domain.ports.out.WhatsAppPort;
 import com.huerto.api.infrastructure.config.TwilioProperties;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +28,9 @@ public class TwilioWhatsAppAdapter implements WhatsAppPort {
 
     private final TwilioProperties props;
     private final NotificationRepository notificationRepository;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     public TwilioWhatsAppAdapter(TwilioProperties props,
                                  NotificationRepository notificationRepository) {
@@ -94,10 +99,11 @@ public class TwilioWhatsAppAdapter implements WhatsAppPort {
 
     private String buildNewOrderText(Order order, String customerName) {
         return String.join("\n",
-                "¡Nuevo pedido recibido!",
+                "🛒 Nuevo pedido recibido!",
                 "Cliente: " + customerName,
                 "Pedido: " + order.visibleId(),
-                "Total: " + order.total().amount().toPlainString() + "€"
+                "Total: " + order.total().amount().toPlainString() + "€",
+                "Ver pedidos: " + frontendUrl + "/admin/orders"
         );
     }
 }
