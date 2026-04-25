@@ -15,6 +15,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("http://localhost:4200");
         config.addAllowedOrigin("https://eariasvalor.github.io");
+        config.addAllowedOrigin("https://ecohuertomontgo.com");
         config.addAllowedOrigin("https://www.ecohuertomontgo.com");
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
