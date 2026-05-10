@@ -1,5 +1,5 @@
 -- =============================================
--- V1 — Schema completo (estado final V14)
+-- V1 — Schema completo
 -- =============================================
 
 CREATE TABLE varieties (
@@ -11,17 +11,18 @@ CREATE TABLE varieties (
 );
 
 CREATE TABLE products (
-                          id         UUID            NOT NULL,
-                          name       VARCHAR(150)    NOT NULL,
-                          variety_id UUID            NOT NULL,
-                          price      NUMERIC(10, 2)  NOT NULL,
-                          currency   VARCHAR(3)      NOT NULL DEFAULT 'EUR',
-                          unit       VARCHAR(20)     NOT NULL,
-                          stock      INTEGER         NOT NULL DEFAULT 0,
-                          available  BOOLEAN         NOT NULL DEFAULT TRUE,
-                          image_url  VARCHAR(500),
-                          version    INTEGER         NOT NULL DEFAULT 0,
-                          CONSTRAINT pk_products       PRIMARY KEY (id),
+                          id          UUID            NOT NULL,
+                          name        VARCHAR(150)    NOT NULL,
+                          variety_id  UUID            NOT NULL,
+                          description VARCHAR(1000),
+                          price       NUMERIC(10, 2)  NOT NULL,
+                          currency    VARCHAR(3)      NOT NULL DEFAULT 'EUR',
+                          unit        VARCHAR(20)     NOT NULL,
+                          stock       INTEGER         NOT NULL DEFAULT 0,
+                          available   BOOLEAN         NOT NULL DEFAULT TRUE,
+                          image_url   VARCHAR(500),
+                          version     INTEGER         NOT NULL DEFAULT 0,
+                          CONSTRAINT pk_products        PRIMARY KEY (id),
                           CONSTRAINT fk_product_variety FOREIGN KEY (variety_id) REFERENCES varieties (id)
 );
 
@@ -59,12 +60,12 @@ CREATE TABLE administrators (
 );
 
 CREATE TABLE orders (
-                        id         UUID        NOT NULL,
-                        visible_id VARCHAR(20) NOT NULL,
-                        customer_id UUID       NOT NULL,
-                        status     VARCHAR(30) NOT NULL,
-                        created_at TIMESTAMP   NOT NULL,
-                        version    INTEGER     NOT NULL DEFAULT 0,
+                        id          UUID        NOT NULL,
+                        visible_id  VARCHAR(20) NOT NULL,
+                        customer_id UUID        NOT NULL,
+                        status      VARCHAR(30) NOT NULL,
+                        created_at  TIMESTAMP   NOT NULL,
+                        version     INTEGER     NOT NULL DEFAULT 0,
                         CONSTRAINT pk_orders         PRIMARY KEY (id),
                         CONSTRAINT uq_visible_id     UNIQUE (visible_id),
                         CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customers (id)
