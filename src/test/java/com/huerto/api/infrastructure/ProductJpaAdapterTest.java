@@ -3,6 +3,7 @@ package com.huerto.api.infrastructure;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import com.huerto.api.infrastructure.adapters.out.persistence.adapter.ProductJpaAdapter;
 import com.huerto.api.infrastructure.adapters.out.persistence.entity.ProductEntity;
@@ -40,7 +41,7 @@ class ProductJpaAdapterTest {
 
     private Product buildProduct(Variety variety) {
         return new Product(
-                UUID.randomUUID(), "Tomato", variety,
+                UUID.randomUUID(), "Tomato", new Description("Fresh tomato"), variety,
                 Price.of("2.50"), Unit.KG, 100, true, null,0
         );
     }

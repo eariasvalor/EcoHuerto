@@ -7,6 +7,7 @@ import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.domain.ports.out.ImageStoragePort;
 import com.huerto.api.domain.ports.out.ProductRepository;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +34,7 @@ class UploadProductImageUseCaseTest {
 
     private Product buildProduct(UUID id) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
-        return new Product(id, "Tomato", variety, Price.of("2.50"),
+        return new Product(id, "Tomato", new Description("Fresh tomato"), variety, Price.of("2.50"),
                 Unit.KG, 100, true, null, 0);
     }
 
@@ -80,7 +81,7 @@ class UploadProductImageUseCaseTest {
         UUID id = UUID.randomUUID();
         String oldUrl = "https://res.cloudinary.com/huerto/image/upload/huerto/categories/old.jpg";
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
-        Product product = new Product(id, "Tomato", variety, Price.of("2.50"),
+        Product product = new Product(id, "Tomato", new Description("Fresh tomato"), variety, Price.of("2.50"),
                 Unit.KG, 100, true, oldUrl, 0);
 
         String newUrl = "https://res.cloudinary.com/huerto/image/upload/huerto/categories/new.jpg";

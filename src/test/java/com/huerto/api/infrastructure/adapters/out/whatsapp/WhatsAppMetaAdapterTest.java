@@ -6,6 +6,7 @@ import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.model.*;
 import com.huerto.api.domain.ports.out.NotificationRepository;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import com.huerto.api.infrastructure.config.WhatsAppProperties;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +64,7 @@ class WhatsAppMetaAdapterTest {
 
     private Order buildOrder() {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
-        Product product = new Product(UUID.randomUUID(), "Tomato", variety,
+        Product product = new Product(UUID.randomUUID(), "Tomato", new Description("Fresh tomato"), variety,
                 Price.of("2.50"), Unit.KG, 2, true, null, 0);
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(UUID.randomUUID(), ORDER_ID, UUID.randomUUID(), "Ana García",

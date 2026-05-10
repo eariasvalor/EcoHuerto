@@ -8,6 +8,7 @@ import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.domain.ports.out.ProductRepository;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +32,7 @@ class UpdateStockUseCaseTest {
 
     private Product buildProduct(UUID id, int stock) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
-        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, stock, true, null, 0);
+        return new Product(id, "Tomato", new Description("Fresh tomato"), variety, Price.of("2.50"), Unit.KG, stock, true, null, 0);
     }
 
     @Test

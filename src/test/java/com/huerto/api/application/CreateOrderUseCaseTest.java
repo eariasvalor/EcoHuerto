@@ -14,6 +14,7 @@ import com.huerto.api.domain.ports.out.EventPublisher;
 import com.huerto.api.domain.ports.out.OrderRepository;
 import com.huerto.api.domain.ports.out.ProductRepository;
 import com.huerto.api.domain.valueobject.Credentials;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Email;
 import com.huerto.api.domain.valueobject.Price;
 import com.huerto.api.util.CustomerTestFactory;
@@ -46,12 +47,12 @@ class CreateOrderUseCaseTest {
 
     private Product buildProduct(UUID id, int stock) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
-        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, stock, true, null,0);
+        return new Product(id, "Tomato",new Description("Fresh tomato"), variety, Price.of("2.50"), Unit.KG, stock, true, null,0);
     }
 
     private Order buildOrder(UUID customerId, UUID productId) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
-        Product product = new Product(productId, "Tomato", variety,
+        Product product = new Product(productId, "Tomato", new Description("Fresh tomato"), variety,
                 Price.of("2.50"), Unit.KG, 100, true, null, 0);
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(UUID.randomUUID(), "HUE-0001", customerId, "",

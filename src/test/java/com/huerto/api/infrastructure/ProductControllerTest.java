@@ -7,6 +7,7 @@ import com.huerto.api.domain.exception.InsufficientStockException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import com.huerto.api.infrastructure.adapters.in.web.ProductController;
 import com.huerto.api.infrastructure.adapters.in.web.dto.ProductRequest;
@@ -61,7 +62,7 @@ class ProductControllerTest {
     }
 
     private Product buildProduct(UUID id, Variety variety, int stock, boolean available, int version) {
-        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, stock, available, null, version);
+        return new Product(id, "Tomato",new Description("Fresh tomato"), variety, Price.of("2.50"), Unit.KG, stock, available, null, version);
     }
 
     @Test
@@ -70,7 +71,7 @@ class ProductControllerTest {
         UUID productId = UUID.randomUUID();
 
         ProductRequest request = new ProductRequest(
-                "Tomato", varietyId, new BigDecimal("2.50"), Unit.KG, 100
+                "Tomato", new Description("Fresh tomato").toString(), varietyId, new BigDecimal("2.50"), Unit.KG, 100
         );
 
         Variety variety = buildVariety(varietyId);
@@ -93,7 +94,7 @@ class ProductControllerTest {
     @Test
     void should_return_400_when_name_is_blank() throws Exception {
         ProductRequest request = new ProductRequest(
-                "", UUID.randomUUID(), new BigDecimal("2.50"), Unit.KG, 100
+                "", new Description("Fresh tomato").value(),UUID.randomUUID(), new BigDecimal("2.50"), Unit.KG, 100
         );
 
         mockMvc.perform(post("/api/v1/products")
@@ -105,7 +106,7 @@ class ProductControllerTest {
     @Test
     void should_return_400_when_price_is_negative() throws Exception {
         ProductRequest request = new ProductRequest(
-                "Tomato", UUID.randomUUID(), new BigDecimal("-1.00"), Unit.KG, 100
+                "Tomato", new Description("Fresh tomato").value(), UUID.randomUUID(), new BigDecimal("-1.00"), Unit.KG, 100
         );
 
         mockMvc.perform(post("/api/v1/products")
@@ -121,7 +122,7 @@ class ProductControllerTest {
 
         Product product1 = buildProduct(UUID.randomUUID(), variety, 100, true, 0);
         Product product2 = new Product(
-                UUID.randomUUID(), "Cherry Tomato", variety,
+                UUID.randomUUID(), "Cherry Tomato", new Description("Fresh tomato"), variety,
                 Price.of("3.00"), Unit.KG, 50, true, null, 0
         );
 
@@ -189,11 +190,11 @@ class ProductControllerTest {
         Variety variety = buildVariety(varietyId);
 
         ProductRequest request = new ProductRequest(
-                "Updated Tomato", varietyId, new BigDecimal("3.00"), Unit.KG, 80
+                "Updated Tomato", new Description("Fresh tomato").value(), varietyId, new BigDecimal("3.00"), Unit.KG, 80
         );
 
         Product updated = new Product(
-                id, "Updated Tomato", variety,
+                id, "Updated Tomato", new Description("Fresh tomato"), variety,
                 Price.of("3.00"), Unit.KG, 80, true, null, 1
         );
 
@@ -213,7 +214,7 @@ class ProductControllerTest {
         UUID id = UUID.randomUUID();
 
         ProductRequest request = new ProductRequest(
-                "Updated Tomato", UUID.randomUUID(), new BigDecimal("3.00"), Unit.KG, 80
+                "Updated Tomato", new Description("Fresh tomato").value(), UUID.randomUUID(), new BigDecimal("3.00"), Unit.KG, 80
         );
 
         when(updateProductUseCase.execute(any()))

@@ -9,6 +9,7 @@ import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.*;
 import com.huerto.api.domain.ports.out.EventPublisher;
 import com.huerto.api.domain.ports.out.OrderRepository;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class CancelOrderUseCaseTest {
     private Order buildOrder(UUID id, OrderStatus status) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Product product = new Product(
-                UUID.randomUUID(), "Tomato", variety,
+                UUID.randomUUID(), "Tomato", new Description("Fresh tomato"), variety,
                 Price.of("2.50"), Unit.KG, 100, true, null,0
         );
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);

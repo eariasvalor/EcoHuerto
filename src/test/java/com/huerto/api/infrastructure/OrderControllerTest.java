@@ -8,6 +8,7 @@ import com.huerto.api.domain.exception.InsufficientStockException;
 import com.huerto.api.domain.exception.InvalidStatusTransitionException;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.*;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import com.huerto.api.infrastructure.adapters.in.web.OrderController;
 import com.huerto.api.infrastructure.adapters.in.web.dto.CreateOrderRequest;
@@ -72,7 +73,7 @@ class OrderControllerTest {
     private Order buildOrder(UUID orderId, UUID customerId) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Product product = new Product(
-                UUID.randomUUID(), "Tomato", variety,
+                UUID.randomUUID(), "Tomato", new Description("Fresh tomato"), variety,
                 Price.of("2.50"), Unit.KG, 100, true, null, 0
         );
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);

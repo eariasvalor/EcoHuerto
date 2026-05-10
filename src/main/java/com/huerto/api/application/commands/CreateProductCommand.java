@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record CreateProductCommand(
         String name,
+        String description,
         UUID varietyId,
         BigDecimal price,
         Unit unit,
@@ -14,6 +15,8 @@ public record CreateProductCommand(
     public CreateProductCommand {
         if (name == null || name.isBlank())
             throw new IllegalArgumentException("Name must not be blank");
+        if (description == null || description.isBlank())
+            throw  new IllegalArgumentException("Description must not be blank");
         if (varietyId == null)
             throw new IllegalArgumentException("Variety ID must not be null");
         if (price == null || price.compareTo(BigDecimal.ZERO) < 0)

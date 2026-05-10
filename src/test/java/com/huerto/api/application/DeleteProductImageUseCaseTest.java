@@ -7,6 +7,7 @@ import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.domain.ports.out.ImageStoragePort;
 import com.huerto.api.domain.ports.out.ProductRepository;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,8 +30,8 @@ class DeleteProductImageUseCaseTest {
     @InjectMocks DeleteProductImageUseCaseImpl deleteProductImageUseCase;
 
     private Product buildProduct(UUID id, String imageUrl) {
-        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
-        return new Product(id, "Tomato", variety, Price.of("2.50"),
+        Variety variety = new Variety(UUID.randomUUID(), "Raf",  "Tomato", null);
+        return new Product(id, "Tomato", new Description("Fresh tomato"), variety, Price.of("2.50"),
                 Unit.KG, 100, true, imageUrl, 0);
     }
 

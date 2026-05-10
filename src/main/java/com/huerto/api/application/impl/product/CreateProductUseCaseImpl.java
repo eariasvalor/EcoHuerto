@@ -8,6 +8,7 @@ import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.domain.ports.out.ProductRepository;
 import com.huerto.api.domain.ports.out.VarietyRepository;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,7 @@ public class CreateProductUseCaseImpl implements CreateProductUseCase {
         Product product = new Product(
                 Generators.timeBasedEpochGenerator().generate(),
                 command.name(),
+                new Description(command.description()),
                 variety,
                 Price.of(command.price()),
                 command.unit(),

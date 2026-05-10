@@ -1,6 +1,7 @@
 package com.huerto.api.domain.model;
 
 import com.huerto.api.domain.enums.Unit;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 
 import java.util.UUID;
@@ -8,6 +9,7 @@ import java.util.UUID;
 public record Product(
         UUID id,
         String name,
+        Description description,
         Variety variety,
         Price price,
         Unit unit,
@@ -28,7 +30,6 @@ public record Product(
         name = name.trim();
     }
 
-    // --- Domain behaviour ---
 
     public boolean hasStock(int requested) {
         return this.stock >= requested;
@@ -42,7 +43,7 @@ public record Product(
                     "Insufficient stock. Available: " + stock + ", requested: " + quantity);
         int newStock = stock - quantity;
         boolean newAvailable = newStock > 0 && available;
-        return new Product(id, name, variety, price, unit,
+        return new Product(id, name, description, variety, price, unit,
                 newStock, newAvailable, imageUrl, version);
     }
 
@@ -50,17 +51,17 @@ public record Product(
         if (quantity <= 0)
             throw new IllegalArgumentException("Quantity must be positive: " + quantity);
         int newStock = stock + quantity;
-        return new Product(id, name, variety, price, unit,
+        return new Product(id, name, description, variety, price, unit,
                 newStock, true, imageUrl, version);
     }
 
     public Product toggleAvailability() {
-        return new Product(id, name, variety, price, unit,
+        return new Product(id, name, description, variety, price, unit,
                 stock, !available, imageUrl, version);
     }
 
     public Product withImageUrl(String imageUrl) {
-        return new Product(id, name, variety, price, unit,
+        return new Product(id, name, description, variety, price, unit,
                 stock, available, imageUrl, version);
     }
 }

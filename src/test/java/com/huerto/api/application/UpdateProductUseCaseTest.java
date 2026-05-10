@@ -8,6 +8,7 @@ import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.domain.ports.out.ProductRepository;
 import com.huerto.api.domain.ports.out.VarietyRepository;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +33,7 @@ class UpdateProductUseCaseTest {
 
     private Product buildProduct(UUID id, int stock) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
-        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, stock, true, null, 0);
+        return new Product(id, "Tomato",new Description("Fresh tomato"), variety, Price.of("2.50"), Unit.KG, stock, true, null, 0);
     }
 
     @Test
@@ -41,7 +42,7 @@ class UpdateProductUseCaseTest {
        Product existing = buildProduct(id, 100);
 
         UpdateProductCommand command = new UpdateProductCommand(
-                id, "Updated Tomato", existing.variety().id(), new BigDecimal("3.00"), Unit.KG
+                id, "Updated Tomato",new Description("Fresh tomato").toString(),existing.variety().id(), new BigDecimal("3.00"), Unit.KG
         );
 
         when(productRepository.findById(id)).thenReturn(Optional.of(existing));
@@ -60,7 +61,7 @@ class UpdateProductUseCaseTest {
     void should_throw_when_product_not_found() {
         UUID id = UUID.randomUUID();
         UpdateProductCommand command = new UpdateProductCommand(
-                id, "Updated Tomato", UUID.randomUUID(), new BigDecimal("3.00"), Unit.KG
+                id, "Updated Tomato", new Description("Fresh tomato").toString(), UUID.randomUUID(), new BigDecimal("3.00"), Unit.KG
         );
 
         when(productRepository.findById(id)).thenReturn(Optional.empty());
@@ -78,11 +79,11 @@ class UpdateProductUseCaseTest {
         UUID varietyId = UUID.randomUUID();
         Variety variety = new Variety(varietyId, "Raf", "Tomato", null);
         Product existing = new Product(
-                id, "Tomato", variety,
+                id, "Tomato", new Description("Fresh tomato"), variety,
                 Price.of("2.50"), Unit.KG, 100, true, null, 0
         );
         UpdateProductCommand command = new UpdateProductCommand(
-                id, "Updated Tomato", varietyId, new BigDecimal("3.00"), Unit.KG
+                id, "Updated Tomato", new Description("Fresh tomato").toString(), varietyId, new BigDecimal("3.00"), Unit.KG
         );
 
         when(productRepository.findById(id)).thenReturn(Optional.of(existing));

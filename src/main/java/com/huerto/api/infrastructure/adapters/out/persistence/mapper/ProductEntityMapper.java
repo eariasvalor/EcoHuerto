@@ -2,6 +2,7 @@ package com.huerto.api.infrastructure.adapters.out.persistence.mapper;
 
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import com.huerto.api.infrastructure.adapters.out.persistence.entity.ProductEntity;
 import com.huerto.api.infrastructure.adapters.out.persistence.entity.VarietyEntity;
@@ -14,6 +15,7 @@ public class ProductEntityMapper {
         ProductEntity entity = new ProductEntity();
         entity.setId(product.id());
         entity.setName(product.name());
+        entity.setDescription(product.description().value());
         entity.setVariety(toVarietyEntity(product.variety()));
         entity.setPrice(product.price().amount());
         entity.setCurrency(product.price().currency());
@@ -35,6 +37,7 @@ public class ProductEntityMapper {
         return new Product(
                 entity.getId(),
                 entity.getName(),
+                new Description(entity.getDescription()),
                 variety,
                 new Price(entity.getPrice(), entity.getCurrency()),
                 entity.getUnit(),

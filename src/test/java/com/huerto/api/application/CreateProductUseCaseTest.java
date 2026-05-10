@@ -8,6 +8,7 @@ import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.domain.ports.out.ProductRepository;
 import com.huerto.api.domain.ports.out.VarietyRepository;
+import com.huerto.api.domain.valueobject.Description;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,7 +36,7 @@ class CreateProductUseCaseTest {
         UUID varietyId = UUID.randomUUID();
         Variety variety = new Variety(varietyId, "Raf", "Tomato", null);
         CreateProductCommand command = new CreateProductCommand(
-                "Tomato", varietyId, new BigDecimal("2.50"), Unit.KG, 100
+                "Tomato", new Description("Fresh tomato").toString(), varietyId, new BigDecimal("2.50"), Unit.KG, 100
         );
 
         when(varietyRepository.findById(varietyId)).thenReturn(Optional.of(variety));
@@ -54,7 +55,7 @@ class CreateProductUseCaseTest {
     void should_throw_when_variety_does_not_exist() {
         UUID varietyId = UUID.randomUUID();
         CreateProductCommand command = new CreateProductCommand(
-                "Tomato", varietyId, new BigDecimal("2.50"), Unit.KG, 100
+                "Tomato",new Description("Fresh tomato").toString(), varietyId, new BigDecimal("2.50"), Unit.KG, 100
         );
 
         when(varietyRepository.findById(varietyId)).thenReturn(Optional.empty());

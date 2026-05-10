@@ -57,6 +57,7 @@ public class ProductController {
     public ProductResponse create(@Valid @RequestBody ProductRequest request) {
         CreateProductCommand command = new CreateProductCommand(
                 request.name(),
+                request.description(),
                 request.varietyId(),
                 request.price(),
                 request.unit(),
@@ -92,6 +93,7 @@ public class ProductController {
         UpdateProductCommand command = new UpdateProductCommand(
                 id,
                 request.name(),
+                request.description(),
                 request.varietyId(),
                 request.price(),
                 request.unit()

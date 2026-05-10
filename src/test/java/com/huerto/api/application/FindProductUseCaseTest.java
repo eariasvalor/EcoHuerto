@@ -6,6 +6,7 @@ import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.domain.ports.out.ProductRepository;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +31,7 @@ class FindProductUseCaseTest {
         UUID id = UUID.randomUUID();
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Product product = new Product(
-                id, "Tomato", variety,
+                id, "Tomato", new Description("Fresh tomato"), variety,
                 Price.of("2.50"), Unit.KG, 100, true, null, 0
         );
 

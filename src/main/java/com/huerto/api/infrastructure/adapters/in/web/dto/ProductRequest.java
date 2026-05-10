@@ -8,6 +8,9 @@ public record ProductRequest(
         @NotBlank(message = "Name must not be blank")
         String name,
 
+        @NotBlank(message = "Description must not be null")
+        String description,
+
         @NotNull(message = "Variety ID must not be null")
         UUID varietyId,
 

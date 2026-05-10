@@ -5,6 +5,7 @@ import com.huerto.api.domain.enums.OrderStatus;
 import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.model.*;
 import com.huerto.api.domain.ports.out.OrderRepository;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +32,7 @@ class ListMyOrdersUseCaseTest {
 
     private Order buildOrder(UUID customerId) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
-        Product product = new Product(UUID.randomUUID(), "Tomato", variety,
+        Product product = new Product(UUID.randomUUID(), "Tomato", new Description("Fresh tomato"), variety,
                 Price.of("2.50"), Unit.KG, 100, true, null, 0);
         OrderLine line = new OrderLine(UUID.randomUUID(), product, 2);
         return new Order(UUID.randomUUID(), "HUE-0001", customerId, "",

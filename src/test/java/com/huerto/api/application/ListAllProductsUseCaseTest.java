@@ -5,6 +5,7 @@ import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.domain.ports.out.ProductRepository;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,11 +33,11 @@ class ListAllProductsUseCaseTest {
     void should_return_all_products_including_unavailable() {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Product available = new Product(
-                UUID.randomUUID(), "Tomato", variety,
+                UUID.randomUUID(), "Tomato", new Description("Fresh tomato"), variety,
                 Price.of("2.50"), Unit.KG, 100, true, null,0
         );
         Product unavailable = new Product(
-                UUID.randomUUID(), "Cherry Tomato", variety,
+                UUID.randomUUID(), "Cherry Tomato", new Description("Fresh tomato"), variety,
                 Price.of("3.00"), Unit.KG, 0, false, null, 0
         );
 

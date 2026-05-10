@@ -8,6 +8,7 @@ import com.huerto.api.domain.enums.Unit;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import com.huerto.api.infrastructure.adapters.in.web.AdminProductController;
 import com.huerto.api.infrastructure.config.SecurityConfig;
@@ -66,11 +67,11 @@ class AdminProductControllerTest {
     void should_return_200_with_all_products_including_unavailable() throws Exception {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
         Product available = new Product(
-                UUID.randomUUID(), "Tomato", variety,
+                UUID.randomUUID(), "Tomato", new Description("Fresh tomato"), variety,
                 Price.of("2.50"), Unit.KG, 100, true, null,0
         );
         Product unavailable = new Product(
-                UUID.randomUUID(), "Cherry Tomato", variety,
+                UUID.randomUUID(), "Cherry Tomato", new Description("Fresh tomato"), variety,
                 Price.of("3.00"), Unit.KG, 0, false, null,0
         );
 
@@ -107,7 +108,7 @@ class AdminProductControllerTest {
     void should_return_200_when_image_is_uploaded() throws Exception {
         UUID productId = UUID.randomUUID();
         Product updated = new Product(
-                productId, "Tomato",
+                productId, "Tomato", new Description("Fresh tomato"),
                 new Variety(UUID.randomUUID(), "Raf", "Tomato", null),
                 Price.of("2.50"), Unit.KG, 100, true,
                 "https://res.cloudinary.com/huerto/image/upload/huerto/categories/abc.jpg",

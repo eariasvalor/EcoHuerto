@@ -19,6 +19,9 @@ public class ProductEntity {
     @Column(nullable = false)
     private String name;
 
+    @Column(length = 1000)
+    private String description;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "variety_id", nullable = false)
     private VarietyEntity variety;

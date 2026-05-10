@@ -6,6 +6,7 @@ import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.model.Variety;
 import com.huerto.api.domain.ports.out.ProductRepository;
+import com.huerto.api.domain.valueobject.Description;
 import com.huerto.api.domain.valueobject.Price;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ class ToggleAvailabilityUseCaseTest {
 
     private Product buildProduct(UUID id, boolean available) {
         Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
-        return new Product(id, "Tomato", variety, Price.of("2.50"), Unit.KG, 100, available, null, 0);
+        return new Product(id, "Tomato", new Description("Fresh tomato"), variety, Price.of("2.50"), Unit.KG, 100, available, null, 0);
     }
 
     @Test
