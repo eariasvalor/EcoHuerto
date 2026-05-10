@@ -109,6 +109,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/admin/notifications").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.GET, "/api/v1/admin/notifications").hasRole(ROLE_ADMIN)
 
+                        //Springspy
+                        .requestMatchers("/spy/**").permitAll()
+                        .requestMatchers("/spy/export/**").permitAll()
+                        .requestMatchers("/spy/**").permitAll()
+
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
