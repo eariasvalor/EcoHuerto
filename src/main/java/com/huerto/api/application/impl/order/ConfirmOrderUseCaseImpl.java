@@ -4,11 +4,8 @@ import com.huerto.api.application.usecase.order.ConfirmOrderUseCase;
 import com.huerto.api.domain.events.OrderStatusChangedEvent;
 import com.huerto.api.domain.exception.ResourceNotFoundException;
 import com.huerto.api.domain.model.Order;
-import com.huerto.api.domain.model.OrderLine;
-import com.huerto.api.domain.model.Product;
 import com.huerto.api.domain.ports.out.EventPublisher;
 import com.huerto.api.domain.ports.out.OrderRepository;
-import com.huerto.api.domain.ports.out.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +17,11 @@ import java.util.UUID;
 public class ConfirmOrderUseCaseImpl implements ConfirmOrderUseCase {
 
     private final OrderRepository orderRepository;
-    private final ProductRepository productRepository;
     private final EventPublisher eventPublisher;
 
 
-    public ConfirmOrderUseCaseImpl(OrderRepository orderRepository, ProductRepository productRepository, EventPublisher eventPublisher) {
+    public ConfirmOrderUseCaseImpl(OrderRepository orderRepository, EventPublisher eventPublisher) {
         this.orderRepository = orderRepository;
-        this.productRepository = productRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -37,11 +32,8 @@ public class ConfirmOrderUseCaseImpl implements ConfirmOrderUseCase {
 
         Order confirmed = order.confirm();
 
-        for (OrderLine line : order.lines()) {
-            Product product = productRepository.findById(line.product().id())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product", line.product().id()));
-            productRepository.save(product.decreaseStock(line.quantity()));
-        }
+        // Stock was already decreased when the order was created (PENDING status)
+        // No need to decrease it again here
 
         Order saved = orderRepository.save(confirmed);
 

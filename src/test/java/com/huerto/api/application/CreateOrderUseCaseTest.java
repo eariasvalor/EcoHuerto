@@ -74,6 +74,7 @@ class CreateOrderUseCaseTest {
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
         when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING))
                 .thenReturn(List.of());
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         CreateOrderResult result = createOrderUseCase.execute(command);
@@ -98,6 +99,7 @@ class CreateOrderUseCaseTest {
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
         when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING))
                 .thenReturn(List.of(existingOrder));
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         CreateOrderResult result = createOrderUseCase.execute(command);
@@ -120,6 +122,7 @@ class CreateOrderUseCaseTest {
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
         when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING))
                 .thenReturn(List.of());
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         createOrderUseCase.execute(command);
@@ -186,5 +189,72 @@ class CreateOrderUseCaseTest {
 
         assertThatThrownBy(execute).isInstanceOf(InsufficientStockException.class);
         verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    void should_decrease_stock_when_creating_order() {
+        UUID customerId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        Customer customer = CustomerTestFactory.buildCustomer(customerId);
+        Product product = buildProduct(productId, 10);
+
+        CreateOrderCommand command = new CreateOrderCommand(
+                customerId, List.of(new CreateOrderCommand.OrderLineCommand(productId, 3))
+        );
+
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING))
+                .thenReturn(List.of());
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        createOrderUseCase.execute(command);
+
+        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
+        verify(productRepository).save(productCaptor.capture());
+
+        Product savedProduct = productCaptor.getValue();
+        assertThat(savedProduct.stock()).isEqualTo(7); // 10 - 3 = 7
+    }
+
+    @Test
+    void should_decrease_stock_for_multiple_products() {
+        UUID customerId = UUID.randomUUID();
+        UUID productId1 = UUID.randomUUID();
+        UUID productId2 = UUID.randomUUID();
+        Customer customer = CustomerTestFactory.buildCustomer(customerId);
+        
+        Variety variety = new Variety(UUID.randomUUID(), "Raf", "Tomato", null);
+        Product product1 = new Product(productId1, "Tomato", new Description("Fresh tomato"), variety,
+                Price.of("2.50"), Unit.KG, 10, true, null, 0);
+        Product product2 = new Product(productId2, "Cucumber", new Description("Fresh cucumber"), variety,
+                Price.of("1.50"), Unit.KG, 5, true, null, 0);
+
+        CreateOrderCommand command = new CreateOrderCommand(
+                customerId,
+                List.of(
+                        new CreateOrderCommand.OrderLineCommand(productId1, 2),
+                        new CreateOrderCommand.OrderLineCommand(productId2, 3)
+                )
+        );
+
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(productRepository.findById(productId1)).thenReturn(Optional.of(product1));
+        when(productRepository.findById(productId2)).thenReturn(Optional.of(product2));
+        when(orderRepository.findByCustomerIdAndStatus(customerId, OrderStatus.PENDING))
+                .thenReturn(List.of());
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        createOrderUseCase.execute(command);
+
+        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
+        verify(productRepository, times(2)).save(productCaptor.capture());
+
+        List<Product> savedProducts = productCaptor.getAllValues();
+        assertThat(savedProducts).hasSize(2);
+        assertThat(savedProducts.get(0).stock()).isEqualTo(8); // 10 - 2 = 8
+        assertThat(savedProducts.get(1).stock()).isEqualTo(2); // 5 - 3 = 2
     }
 }

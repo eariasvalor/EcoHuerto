@@ -48,6 +48,13 @@ public class CreateOrderUseCaseImpl implements CreateOrderUseCase {
 
         List<OrderLine> lines = buildLines(command.lines());
 
+        // Decrease stock immediately when creating the order
+        for (OrderLine line : lines) {
+            Product product = productRepository.findById(line.product().id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product", line.product().id()));
+            productRepository.save(product.decreaseStock(line.quantity()));
+        }
+
         boolean possibleDuplicate = isDuplicate(command);
 
         Order order = new Order(
